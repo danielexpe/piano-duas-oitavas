@@ -10,8 +10,8 @@
 > independente do toolkit. A validação manual de áudio, terminais reais e
 > hardware continua pendente; fbdev e captura PNG pertencem à Fase 6.
 > **Branch:** main (repositório próprio)
-> **Último commit de código:** `4494fbc` (Fase 4)
-> **Alterações da Fase 5:** não commitadas até pedido explícito
+> **Último commit de código:** `bf77ae9` (Fase 5)
+> **Alterações da Fase 5:** commitadas e enviadas em `bf77ae9`
 > **Pacote desktop:** `dist/piano-duas-oitavas-0.1.0-x86_64-unknown-linux-gnu.tar.gz`
 > (SHA-256 `6b67350a7c866540ddc3f95de6542ceb8a915e4dadc58c11cea263aa39733d25`)
 > **Remote:** `origin` = `github.com/danielexpe/piano-duas-oitavas`
@@ -51,7 +51,7 @@
 | Framebuffer | não iniciado; `--backend fb` retorna código 3 |
 | Captura PNG | não iniciada; `--capture-frame` retorna código 1 |
 | Validação manual | áudio audível, terminais reais, key-up real, fb/VT e 24/16 bpp pendentes |
-| Git | `origin` = `danielexpe/piano-duas-oitavas`; último commit de código `4494fbc` |
+| Git | `origin` = `danielexpe/piano-duas-oitavas`; último commit de código `bf77ae9` |
 
 ### Ponto de retomada (handoff 2026-10-31, Fase 5)
 
@@ -69,9 +69,8 @@
 - **Medições locais (TUI, release):** startup até a primeira tela ~1,2 ms;
   frame ativo/ocioso ~0,23 ms em `TestBackend` 120 × 36; RSS ~3,5 MB; binário
   ~1,5 MB; pacote ~651 KB. Frame em fb 1080p depende da Fase 6.
-- **Estado do Git:** último commit de código `4494fbc` (Fase 4). As alterações
-  da Fase 5 permanecem não commitadas até pedido explícito; `dist/` é
-  ignorado.
+- **Estado do Git:** commit `bf77ae9` (Fase 5) enviado para `origin/main`;
+  este registro de docs vem em commit separado; `dist/` é ignorado.
 - **Pendente de validação:** áudio audível em ALSA real (device presente,
   ausente e ocupado), TUI em xterm/foot/kitty/alacritty/console, key-up real,
   resize interativo, fb/VT, 24/16 bpp, captura PNG e matriz manual de
@@ -224,6 +223,7 @@ claramente o que foi validado e o que permanece pendente.
 | 2026-10-31 | Fase 3: ciclo de vozes, key-up real, sustain adiado, invariantes e testes de tempo | 97 unitários; release/fade, auto-release só em `auto`, sequência determinística de 20 mil operações; portões completos verdes; commit `f6274a5` e push | `src/core/voice.rs`, `src/state/session.rs`, `src/app.rs`, `docs/05`, `docs/06`, `AGENTS.md` |
 | 2026-10-31 | Fase 4: fonte Inter, manifesto/xtask, síntese ALSA, acessibilidade e glifos | 120 unitários + 5 CLI + 2 PTY + 15 snapshots; áudio lazy/mute/volume/shutdown; `NO_COLOR`/mono/contraste; hash de asset verificado; sem validação audível em hardware | `assets/**`, `xtask/**`, `src/assets.rs`, `src/audio/**`, `src/platform/alsa.rs`, `src/theme.rs`, `src/render/**`, `src/app.rs`, `src/i18n`, `docs/04`–`07`, `README.md`, `THIRD_PARTY_NOTICES.md`, `CREDITS.md`, `AGENTS.md` |
 | 2026-10-31 | Fase 5: release desktop, dependências/licenças, medições, pacote e smoke | Pacote `tar.gz` (SHA-256 `6b67350a...39733d25`) + binário sem assets; `xtask notices --check` (140 deps); `ratatui` 0.30.2 remove `lru` vulnerável; startup ~1,2 ms, frame ~0,23 ms, RSS ~3,5 MB; instalação em prefixo temporário | `Cargo.toml`, `Cargo.lock`, `THIRD_PARTY_NOTICES.md`, `xtask/src/main.rs`, `install.sh`, `RELEASE_NOTES.md`, `README.md`, `docs/05`, `docs/06`, `AGENTS.md` |
+| 2026-10-31 | Commit e push da Fase 5 | Commit `bf77ae9` (`feat: conclui Fase 5 com pacote desktop e auditoria de dependências`) enviado para `origin/main`; pacote em `dist/` não versionado | `AGENTS.md` |
 | 2026-10-31 | Commit e push da Fase 4 | Commit `4494fbc` (`feat: conclui Fase 4 com fonte, áudio e acessibilidade`) enviado para `origin/main`; GitHub reporta 1 alerta Dependabot low para triagem | `AGENTS.md` |
 
 ## 11. Fases
@@ -264,7 +264,8 @@ claramente o que foi validado e o que permanece pendente.
 - Use `testes_debug.sh` no VT antes de alterar código de fbdev.
 - O pacote desktop fica em `dist/` (ignorado pelo Git) e deve ser regenerado
   após qualquer mudança de código ou docs; o hash muda e não deve entrar nas
-  notas de release.
+  notas de release. O hash atual em `AGENTS.md` é
+  `6b67350a7c866540ddc3f95de6542ceb8a915e4dadc58c11cea263aa39733d25`.
 - A validação manual em terminais reais e VT continua pendente; não declare
   release validado sem rodar a matriz de `docs/05`.
 - Não faça commit/push sem pedido explícito do usuário.
