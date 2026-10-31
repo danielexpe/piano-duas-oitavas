@@ -10,8 +10,8 @@
 > com fallback de dispositivo). A validação manual em VT real, console blanked,
 > 24/16 bpp e áudio audível no hardware continua pendente. O app é um repositório próprio, independente do toolkit.
 > **Branch:** main (repositório próprio)
-> **Último commit de código:** `bf77ae9` (Fase 5)
-> **Alterações da Fase 6:** implementadas e não commitadas nesta sessão
+> **Último commit de código:** `2ab35d8` (Fase 6)
+> **Alterações da Fase 6:** commitadas em `2ab35d8`; release `v0.2.0` publicada
 > **Pacote desktop:** `dist/piano-duas-oitavas-0.2.0-x86_64-unknown-linux-gnu.tar.gz`
 > (SHA-256 `6a82c05fb96a2bccc093ed8215391f783db34cfd9cce14958a58b686fd1b8f86`)
 > **Remote:** `origin` = `github.com/danielexpe/piano-duas-oitavas`
@@ -54,12 +54,12 @@
 | Áudio no VT | `default`/PipeWire recuperado por `XDG_RUNTIME_DIR`/DBus; fallback para analógico/USB; debug em `PIANO_AUDIO_DEBUG=1` |
 | Frame fb | ~17 ms ativo em 1920 × 1080 no release; ocioso estático não redesenha |
 | Validação manual | fluxo principal no VT real (interface e áudio) aprovado pelo usuário; 24/16 bpp, console blanked, pan real, key-up real e matriz completa pendentes |
-| Release | v0.2.0 em preparação; pacote `6a82c05...b8f86` |
-| Git | `origin` = `danielexpe/piano-duas-oitavas`; último commit de código `bf77ae9` |
+| Release | `v0.2.0` publicada em 2026-10-31: https://github.com/danielexpe/piano-duas-oitavas/releases/tag/v0.2.0 (pacote `6a82c05...b8f86`) |
+| Git | `origin` = `danielexpe/piano-duas-oitavas`; último commit de código `2ab35d8`; tag `v0.2.0` |
 
 ### Ponto de retomada (handoff 2026-10-31, Fase 6)
 
-- **Onde paramos:** Fase 6 implementada no código, sem commit. O backend
+- **Onde paramos:** Fase 6 implementada e commitada em `2ab35d8`; release `v0.2.0` publicada. O backend
   `--backend fb` abre e valida `/dev/fb0`, entra em `KD_GRAPHICS`, desbloqueia
   o console, honra `yoffset`/`ypanstep`, tenta pan e cai para o buffer visível,
   desenha a cena com `tiny-skia` + Inter embutida, lê `/dev/tty` em raw mode e
@@ -84,6 +84,10 @@
 - **Medições:** frame fb ativo ~17 ms em 1920 × 1080 (alvo ≤16 ms); o loop
   compara a cena e não redesenha quando ela está estável, reduzindo o custo
   ocioso. A medição é de software, não de hardware real.
+- **Release v0.2.0 (2026-10-31):** tag anotada `v0.2.0` no commit `2ab35d8`,
+  assets `piano-duas-oitavas-0.2.0-x86_64-unknown-linux-gnu.tar.gz` (1,1 MB) e
+  `.sha256` (`6a82c05fb96a2bccc093ed8215391f783db34cfd9cce14958a58b686fd1b8f86`).
+  URL: https://github.com/danielexpe/piano-duas-oitavas/releases/tag/v0.2.0.
 - **Validado em 2026-10-31:** o usuário aprovou o fluxo principal no VT real
   (interface gráfica e áudio) após a correção. O pacote 0.2.0 foi verificado
   com SHA-256, smoke em `/tmp`, captura PNG, erro de fb com código 3 e
@@ -256,6 +260,8 @@ claramente o que foi validado e o que permanece pendente.
 | 2026-10-31 | Fase 6: fbdev, renderer vetorial, scaling, input raw, sinais e captura PNG | `platform/fb.rs`, `platform/input.rs`, `render/fb.rs`, `render/text.rs` e `capture.rs`; ABI 160/80, 32/24/16 bpp, pan/fallback, parser `Esc`/setas/F1–F3, layout Wide/Compact/Minimal, PNG 1344×756 determinístico; portões com/sem `audio` verdes; frame fb ~17 ms em 1920×1080; validação em VT pendente | `src/platform/**`, `src/render/**`, `src/capture.rs`, `src/main.rs`, `src/error.rs`, `tests/cli.rs`, `README.md`, `docs/02`, `docs/03`, `docs/05`, `docs/06`, `AGENTS.md` |
 | 2026-10-31 | Correção de áudio no VT: ambiente PipeWire/Pulse e fallback ALSA | `prepare_environment` preenche `XDG_RUNTIME_DIR`/`PIPEWIRE_RUNTIME_DIR`/DBus/`PULSE_SERVER`; candidatos `default`→`pipewire`→`pulse`→hardware (não-HDMI primeiro); `--audio-device` e `PIANO_AUDIO_DEBUG=1`; escrita com recuperação de xrun/short writes; 5 testes de candidatos | `src/platform/alsa.rs`, `src/audio/mod.rs`, `src/app.rs`, `src/cli.rs`, `src/main.rs`, `README.md`, `docs/02`, `docs/05`, `docs/06`, `docs/07`, `AGENTS.md` |
 | 2026-10-31 | Release 0.2.0: versão, notas, pacote e instalador | `version = 0.2.0`, `RELEASE_NOTES.md` reescrito, tarball 1,1 MB + `.sha256` (`6a82c05...b8f86`), binário 2,4 MB; smoke, captura, erro fb e instalação em `/tmp`; `install.sh` agora retorna o status correto ao instalar de diretório extraído | `Cargo.toml`, `Cargo.lock`, `install.sh`, `RELEASE_NOTES.md`, `README.md`, `AGENTS.md`, `docs/05`, `docs/06` |
+| 2026-10-31 | Commit e push da Fase 6 | Commit `2ab35d8` (`feat: conclui Fase 6 com fbdev, captura PNG e áudio no VT`) enviado para `origin/main`; 28 arquivos, 3035 inserções; pacote em `dist/` não versionado | `AGENTS.md` |
+| 2026-10-31 | Release `v0.2.0` | Tag anotada no commit `2ab35d8`; GitHub Release com título `Piano Duas Oitavas 0.2.0`, tarball 1,1 MB e `.sha256`; URL https://github.com/danielexpe/piano-duas-oitavas/releases/tag/v0.2.0 | `AGENTS.md` |
 
 ## 11. Fases
 
@@ -267,7 +273,7 @@ claramente o que foi validado e o que permanece pendente.
 | 3 — Lógica rica | concluída em 2026-10-31 | Invariantes e fallback de key-up |
 | 4 — Arte/som/i18n | concluída em 2026-10-31 | Fonte + áudio + acessibilidade |
 | 5 — Release desktop | concluída em 2026-10-31; validação manual pendente | Pacote e smoke validados |
-| 6 — Framebuffer | implementada em 2026-10-31; validação manual em VT pendente | Console validado + `testes_debug.sh` |
+| 6 — Framebuffer | implementada em 2026-10-31; release v0.2.0 publicada; matriz manual completa pendente | 24/16 bpp, console blanked, pan real e `testes_debug.sh` |
 | 7 — Backlog | pendente | Itens priorizados |
 
 ## 12. Notas para a próxima sessão
@@ -296,7 +302,7 @@ claramente o que foi validado e o que permanece pendente.
 - O pacote desktop fica em `dist/` (ignorado pelo Git) e deve ser regenerado
   após qualquer mudança de código ou docs; o hash muda e não deve entrar nas
   notas de release. O hash atual em `AGENTS.md` é
-  `6b67350a7c866540ddc3f95de6542ceb8a915e4dadc58c11cea263aa39733d25`.
+  `6a82c05fb96a2bccc093ed8215391f783db34cfd9cce14958a58b686fd1b8f86`.
 - A validação manual em terminais reais e VT continua pendente; não declare
   release validado sem rodar a matriz de `docs/05`.
 - O backend fb usa o canvas lógico de 1344 × 756 e o escala com bilinear para
