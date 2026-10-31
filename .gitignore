@@ -1,0 +1,7 @@
+/target
+/dist
+*.tar.gz
+*.sha256
+testes_debug.txt
+/captura*.png
+/capture*.png

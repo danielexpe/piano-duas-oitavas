@@ -1,0 +1,24 @@
+Piano Duas Oitavas
+Oitava 3 (C3–B4)   Vol 32%   Som: ligado   Idioma: PT-BR
+  ┌Ajuda─────────────────────────────────────────────────────────────────────┐
+┌O│Notas e teclas                                                            │─┐
+│ │Brancas: Z X C V B N M / Q W E R T Y U                                    │ │
+│ │Pretas: S D G H J / 2 3 5 6 7                                             │ │
+│ │Solfejo: Dó Ré Mi Fá Sol Lá Si                                            │ │
+│ │                                                                          │ │
+│ │Controles                                                                 │ │
+│ │Espaço: sustain (segurar; no fallback, alterna)                           │ │
+│ │Esq./Dir.: muda a oitava base                                             │ │
+│ │+ ou -: volume em passos de 5%                                            │ │
+│ │F3: liga/desliga o som                                                    │ │
+│ │F2: português/inglês                                                      │ │
+│ │F1: abre/fecha esta ajuda                                                 │ │
+│ │Esc: fecha a ajuda ou sai                                                 │ │
+│ │                                                                          │ │
+│ │Sem key-up: cada nota dura 750 ms; Espaço alterna o sustain.              │ │
+└─│Preferências não são salvas.                                              │─┘
+Su│                                                                          │
+┌T│F1 ou Esc para fechar                                                     │─┐
+│ └──────────────────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────────────────┘
+F1 ajuda   F2 idioma   F3 mudo   Esc sair
