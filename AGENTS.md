@@ -13,8 +13,8 @@
 > não é dependência de runtime. Captura determinística e fbdev continuam
 > pendentes (Fases 5/6).
 > **Branch:** main (repositório próprio)
-> **Último commit do app:** `f6274a5` (Fase 3)
-> **Alterações da Fase 4:** não commitadas até pedido explícito
+> **Último commit de código:** `4494fbc` (Fase 4)
+> **Alterações da Fase 4:** commitadas e enviadas em `4494fbc`
 > **Remote:** `origin` = `github.com/danielexpe/piano-duas-oitavas`
 
 ## 1. Retomada rápida
@@ -50,7 +50,7 @@
 | Captura PNG | não iniciada; `--capture-frame` retorna código 1 |
 | Release | não iniciado |
 | Validação manual | PTY (`script`) e testes sem hardware; terminais/VT reais e áudio audível ainda pendentes |
-| Git | repositório próprio; `origin` = `danielexpe/piano-duas-oitavas`; último commit `f6274a5` |
+| Git | repositório próprio; `origin` = `danielexpe/piano-duas-oitavas`; último commit de código `4494fbc` |
 
 ### Ponto de retomada (handoff 2026-10-31, Fase 4)
 
@@ -67,8 +67,8 @@
   com inicialização lazy na primeira nota e shutdown com fade de 120 ms. A
   paleta agora tem variantes truecolor/256/16/mono, `NO_COLOR` tem prioridade
   e os estados usam marcadores além de cor.
-- **Estado do Git:** último commit `f6274a5` (Fase 3). As alterações da Fase 4
-  permanecem não commitadas até pedido explícito.
+- **Estado do Git:** commit `4494fbc` (Fase 4) enviado para `origin/main`;
+  este registro de docs vem em commit separado.
 - **Validação já feita:** portões completos verdes (`fmt`, `clippy` com/sem
   features, `test` com/sem features, `xtask assets --check`, builds release).
   120 testes unitários + 5 CLI + 2 PTY + 15 snapshots (snapshots exigem a
@@ -223,6 +223,7 @@ claramente o que foi validado e o que permanece pendente.
 | 2026-10-31 | Extração do app para repositório próprio | `git init`, commit `9071c6d`, remoto público `danielexpe/piano-duas-oitavas`; toolkit deixou de rastrear a pasta | `.git/`, `AGENTS.md` |
 | 2026-10-31 | Fase 3: ciclo de vozes, key-up real, sustain adiado, invariantes e testes de tempo | 97 unitários; release/fade, auto-release só em `auto`, sequência determinística de 20 mil operações; portões completos verdes; commit `f6274a5` e push | `src/core/voice.rs`, `src/state/session.rs`, `src/app.rs`, `docs/05`, `docs/06`, `AGENTS.md` |
 | 2026-10-31 | Fase 4: fonte Inter, manifesto/xtask, síntese ALSA, acessibilidade e glifos | 120 unitários + 5 CLI + 2 PTY + 15 snapshots; áudio lazy/mute/volume/shutdown; `NO_COLOR`/mono/contraste; hash de asset verificado; sem validação audível em hardware | `assets/**`, `xtask/**`, `src/assets.rs`, `src/audio/**`, `src/platform/alsa.rs`, `src/theme.rs`, `src/render/**`, `src/app.rs`, `src/i18n`, `docs/04`–`07`, `README.md`, `THIRD_PARTY_NOTICES.md`, `CREDITS.md`, `AGENTS.md` |
+| 2026-10-31 | Commit e push da Fase 4 | Commit `4494fbc` (`feat: conclui Fase 4 com fonte, áudio e acessibilidade`) enviado para `origin/main`; GitHub reporta 1 alerta Dependabot low para triagem | `AGENTS.md` |
 
 ## 11. Fases
 
