@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::core::note::MidiNote;
-use crate::core::voice::AUTO_RELEASE;
+use crate::core::voice::{VoiceAction, AUTO_RELEASE};
 use crate::input::Action;
 use crate::state::{effects, Effects, KeyUpMode, Session, SustainMode, VOLUME_STEP};
 
@@ -79,12 +79,13 @@ impl App {
             return;
         }
         self.now = now;
-        if self.session.sustain() == SustainMode::Off {
+        if self.session.sustain() == SustainMode::Off && self.session.keyup() == KeyUpMode::Auto {
             let expired = self.session.voices_mut().expire(now, AUTO_RELEASE);
             for note in expired {
                 self.effects.release(note, now);
             }
         }
+        self.session.voices_mut().expire_releases(now);
     }
 
     pub fn handle(&mut self, action: Action) {
@@ -100,6 +101,8 @@ impl App {
             Action::ToggleLanguage => self.session.toggle_language(),
             Action::ToggleMute => self.session.toggle_mute(),
             Action::ToggleHelp => self.session.toggle_help(),
+            Action::NoteOff(note) => self.note_off(note),
+            Action::SustainRelease => self.sustain_release(),
             _ if self.session.help_open() => {}
             Action::OctaveDown => {
                 if self.session.shift_octave(-1) {
@@ -114,25 +117,33 @@ impl App {
             Action::VolumeDown => self.session.adjust_volume(-VOLUME_STEP),
             Action::VolumeUp => self.session.adjust_volume(VOLUME_STEP),
             Action::SustainPress => self.sustain_press(),
-            Action::SustainRelease => self.sustain_release(),
             Action::NoteOn(note) => self.note_on(note),
-            Action::NoteOff(note) => self.note_off(note),
             Action::Tick => {}
         }
     }
 
     pub fn release_all(&mut self) {
-        self.session.release_all();
+        self.session.release_all(self.now);
         self.effects.release_all(self.now);
     }
 
     fn note_on(&mut self, note: MidiNote) {
-        self.session.voices_mut().note_on(note, self.now);
+        if let VoiceAction::Stolen { previous, .. } =
+            self.session.voices_mut().note_on(note, self.now)
+        {
+            self.effects.release(previous, self.now);
+        }
         self.effects.press(note, self.now);
     }
 
     fn note_off(&mut self, note: MidiNote) {
-        if self.session.voices_mut().note_off(note).is_some() {
+        if self.session.keyup() == KeyUpMode::Real
+            && self.session.sustain() == SustainMode::On
+            && self.session.voices_mut().defer_release(note).is_some()
+        {
+            return;
+        }
+        if self.session.voices_mut().note_off(note, self.now).is_some() {
             self.effects.release(note, self.now);
         }
     }
@@ -142,7 +153,7 @@ impl App {
             KeyUpMode::Auto => {
                 self.session.toggle_latch();
                 if self.session.sustain() == SustainMode::Off {
-                    self.session.voices_mut().release_all();
+                    self.session.release_all(self.now);
                     self.effects.release_all(self.now);
                 }
             }
@@ -152,9 +163,11 @@ impl App {
 
     fn sustain_release(&mut self) {
         if self.session.keyup() == KeyUpMode::Real && self.session.sustain() == SustainMode::On {
-            self.session.voices_mut().release_all();
+            let released = self.session.release_unheld(self.now);
+            for note in released {
+                self.effects.release(note, self.now);
+            }
             self.session.set_sustain(SustainMode::Off);
-            self.effects.release_all(self.now);
         }
     }
 }
@@ -247,17 +260,97 @@ mod tests {
     }
 
     #[test]
-    fn real_keyup_sustain_holds_and_releases() {
+    fn real_keyup_does_not_auto_release() {
+        let mut app = app();
+        app.session_mut().set_keyup(KeyUpMode::Real);
+        app.handle(Action::NoteOn(note(PitchClass::C)));
+        app.advance(at(2_000));
+        assert!(app.session().voices().is_held(note(PitchClass::C)));
+        app.handle(Action::NoteOff(note(PitchClass::C)));
+        assert!(!app.session().voices().is_held(note(PitchClass::C)));
+        assert!(app.session().voices().is_releasing(note(PitchClass::C)));
+        app.advance(at(2_180));
+        assert_eq!(app.session().voices().active_count(), 0);
+    }
+
+    #[test]
+    fn real_sustain_defers_note_off_until_pedal_release() {
         let mut app = app();
         app.session_mut().set_keyup(KeyUpMode::Real);
         app.handle(Action::NoteOn(note(PitchClass::C)));
         app.handle(Action::SustainPress);
-        assert_eq!(app.session().sustain(), SustainMode::On);
         app.advance(at(2_000));
-        assert!(app.session().voices().is_held(note(PitchClass::C)));
+        app.handle(Action::NoteOff(note(PitchClass::C)));
+        assert!(!app.session().voices().is_held(note(PitchClass::C)));
+        assert!(!app.session().voices().is_releasing(note(PitchClass::C)));
+        assert_eq!(app.session().sustain(), SustainMode::On);
+
+        app.advance(at(4_000));
+        assert_eq!(app.session().voices().active_count(), 1);
         app.handle(Action::SustainRelease);
         assert_eq!(app.session().sustain(), SustainMode::Off);
+        assert!(app.session().voices().is_releasing(note(PitchClass::C)));
+        app.advance(at(4_450));
+        assert_eq!(app.session().voices().active_count(), 0);
+    }
+
+    #[test]
+    fn real_sustain_keeps_held_keys_after_pedal_release() {
+        let mut app = app();
+        app.session_mut().set_keyup(KeyUpMode::Real);
+        app.handle(Action::NoteOn(note(PitchClass::C)));
+        app.handle(Action::NoteOn(note(PitchClass::D)));
+        app.handle(Action::SustainPress);
+        app.handle(Action::NoteOff(note(PitchClass::C)));
+        app.handle(Action::SustainRelease);
+
+        assert!(app.session().voices().is_releasing(note(PitchClass::C)));
+        assert!(app.session().voices().is_held(note(PitchClass::D)));
+        app.advance(at(500));
+        assert!(!app.session().voices().is_releasing(note(PitchClass::C)));
+        assert!(app.session().voices().is_held(note(PitchClass::D)));
+
+        app.handle(Action::NoteOff(note(PitchClass::D)));
+        assert!(!app.session().voices().is_held(note(PitchClass::D)));
+    }
+
+    #[test]
+    fn help_does_not_block_key_up_or_sustain_release() {
+        let mut app = app();
+        app.session_mut().set_keyup(KeyUpMode::Real);
+        app.handle(Action::NoteOn(note(PitchClass::C)));
+        app.handle(Action::SustainPress);
+        app.handle(Action::ToggleHelp);
+        app.handle(Action::NoteOn(note(PitchClass::D)));
+        app.handle(Action::NoteOff(note(PitchClass::C)));
+        app.handle(Action::SustainRelease);
+
         assert_eq!(app.session().voices().held_count(), 0);
+        assert!(!app.session().voices().is_held(note(PitchClass::D)));
+        assert_eq!(app.session().sustain(), SustainMode::Off);
+        assert!(app.session().help_open());
+    }
+
+    #[test]
+    fn auto_release_finishes_the_voice_after_its_release() {
+        let mut app = app();
+        app.handle(Action::NoteOn(note(PitchClass::C)));
+        app.advance(at(750));
+        assert!(!app.session().voices().is_held(note(PitchClass::C)));
+        assert!(app.session().voices().is_releasing(note(PitchClass::C)));
+        app.advance(at(930));
+        assert_eq!(app.session().voices().active_count(), 0);
+    }
+
+    #[test]
+    fn octave_shift_cancels_pending_auto_release() {
+        let mut app = app();
+        app.handle(Action::NoteOn(note(PitchClass::C)));
+        app.advance(at(700));
+        app.handle(Action::OctaveUp);
+        app.advance(at(2_000));
+        assert_eq!(app.session().voices().active_count(), 0);
+        assert_eq!(app.session().base_octave(), 4);
     }
 
     #[test]

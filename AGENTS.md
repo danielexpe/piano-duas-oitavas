@@ -5,22 +5,25 @@
 > Atualize-o ao final de cada tarefa relevante.
 >
 > **Última atualização:** 2026-10-31
-> **Status atual:** Fase 2 (TUI funcional) concluída e commitada em 2026-10-31
-> (`c965c16`). Piano e teclado físico completos, efeitos, breakpoints, snapshots
-> e teste PTY implementados; áudio e fbdev ainda não.
-> **Branch:** main (repositório raiz do toolkit)
-> **Último commit do toolkit:** `3aec021`
-> **Último commit do app:** `c965c16` (Fase 2, sem push)
-> **Remote:** `origin` no repositório raiz; nenhum push do app
+> **Status atual:** Fase 3 (lógica rica) concluída em 2026-10-31 para o
+> critério de saída. O app é um repositório próprio, independente do toolkit;
+> o toolkit é apenas ferramenta de desenvolvimento e não é dependência de
+> runtime. Captura determinística fica para as Fases 4/5.
+> **Branch:** main (repositório próprio)
+> **Último commit do app:** `9071c6d` (importação como repositório próprio)
+> **Alterações da Fase 3:** não commitadas até pedido explícito
+> **Remote:** `origin` = `github.com/danielexpe/piano-duas-oitavas`
 
 ## 1. Retomada rápida
 
 1. Leia este arquivo inteiro.
 2. Rode `git status --short --branch` e `git log --oneline -5`.
-3. Leia `README.md`, `framework.md` e os docs da fase atual.
+3. Leia `README.md` e os docs da fase atual. `framework.md` é referência de
+   processo copiada do toolkit, não dependência de runtime do app.
 4. Não sobrescreva trabalho existente; registre bloqueios em vez de inventar
    progresso.
-5. Carregue a skill `rust-console-tui-framebuffer` antes de implementar.
+5. Use a skill `rust-console-tui-framebuffer` do toolkit apenas como ferramenta
+   de desenvolvimento; o app não importa nem executa nada do toolkit.
 6. Não implemente fora do escopo da fase; proponha ADR para mudanças
    estruturais.
 
@@ -30,48 +33,47 @@
 | --- | --- |
 | Fase 0 — Descoberta | concluída em 2026-10-31 |
 | Fase 1 — Fundação | concluída em 2026-10-31 |
-| Fase 2 — TUI funcional | concluída em 2026-10-31; commit `c965c16` |
+| Fase 2 — TUI funcional | concluída em 2026-10-31 |
+| Fase 3 — Lógica rica | concluída em 2026-10-31; captura determinística adiada para as Fases 4/5 |
 | Especificações | `docs/01`–`08` preenchidos e congelados |
-| Código | domínio puro, sessão, efeitos visuais, input, app, CLI, i18n, piano em células, teclado físico e TUI funcional |
-| Testes | 88 unitários + 5 de CLI + 2 PTY + 15 snapshots; passam com e sem `audio` |
-| Áudio | especificado; não implementado (feature compila) |
+| Código | domínio puro, sessão, efeitos visuais, input, app, CLI, i18n, piano em células, teclado físico e TUI funcional; ciclo de vozes com release/fade e key-up real |
+| Testes | 97 unitários + 5 de CLI + 2 PTY + 15 snapshots; portões verdes com e sem `audio` |
+| Áudio | especificado; fase 4, não implementado (feature compila) |
 | Framebuffer | não iniciado; `--backend fb` retorna código 3 |
 | Captura PNG | não iniciada; `--capture-frame` retorna código 1 |
 | Release | não iniciado |
 | Validação manual | PTY (`script`) com resposta ao protocolo aprimorado; terminais/VT reais ainda pendentes |
-| Git | rastreado na `main` local; commits `0df048a` (Fase 1) e `c965c16` (Fase 2); sem push |
+| Git | repositório próprio criado; `origin` = `danielexpe/piano-duas-oitavas`; último commit `9071c6d` |
 
-### Ponto de retomada (handoff 2026-10-31, pós-Fase 2)
+### Ponto de retomada (handoff 2026-10-31, Fase 3)
 
-- **Raiz do toolkit:** repositório que contém este diretório de app
-- **Diretório do app:** `piano-duas-oitavas/`
-- **Onde paramos:** Fase 2 concluída. A TUI desenha piano completo (14 brancas
-  e 10 pretas sobrepostas), rótulos de nota e tecla física, teclado físico por
-  breakpoint, nota flutuante, glow de release, barra de sustain, ajuda modal
-  escurecida e HUD de key-up `real`/`auto`. `--no-animations` remove a nota
-  flutuante e os efeitos animados.
-- **Estado do Git:** Fase 1 commitada em `0df048a`; Fase 2 commitada em
-  `c965c16` (`src/**`, `tests/**`, docs e este arquivo). Este registro de
-  hash entra em um commit de documentação subsequente. Sem tag e sem push.
+- **Repositório do app:** este diretório é um repositório Git próprio
+  (`origin` = `github.com/danielexpe/piano-duas-oitavas`); o toolkit externo
+  não faz parte do app.
+- **Onde paramos:** Fase 3 concluída. O alocador tem release de 180 ms,
+  release de sustain de 450 ms, fade de roubo de 5 ms, retrigger sem duplicar,
+  auto-release de 750 ms apenas no modo `auto` e sustain real adiando o
+  `NoteOff` até soltar Espaço. `expire_releases` libera slots após o fade.
+- **Estado do Git:** último commit `9071c6d` (importação do repositório). As
+  alterações da Fase 3 permanecem não commitadas até pedido explícito.
 - **Validação já feita:** portões completos verdes (`fmt`, `clippy` com/sem
   features, `test` com/sem features, `xtask assets --check`, builds release).
-  15 snapshots de TUI em 80 × 24, 100 × 28 e 120 × 36 cobrindo pt/en, idle,
-  pressed, glow, sustain, ajuda, mudo e `--no-animations`. Teste PTY com
-  `script(1)` valida desenho e restauração do alternate screen; o protocolo
-  aprimorado é respondido no PTY e o HUD mostra `Key-up: real`.
-- **Pendente de validação:** TUI em terminais reais (xterm, foot, kitty,
-  alacritty e console), comportamento de key-up real por terminal, resize
-  interativo e revisão visual das cores. Tudo manual, da matriz de `docs/05`.
+  97 testes unitários + 5 CLI + 2 PTY + 15 snapshots; sequência determinística
+  de 20 mil operações valida invariantes de vozes.
+- **Pendente de validação:** key-up real em terminais reais, TUI em xterm/foot/
+  kitty/alacritty/console, resize interativo, revisão visual das cores e
+  captura determinística (Fases 4/5); matriz manual de `docs/05`.
 - **Primeira ação ao voltar:** ler este arquivo, rodar
   `git status --short --branch`, conferir `docs/06-roadmap.md` e iniciar a
-  Fase 3. Não reabrir decisões da seção 4.
+  Fase 4 (arte, áudio, i18n e acessibilidade).
 
 ### Próxima tarefa recomendada
 
-Iniciar a **Fase 3 — Lógica rica**: alocação/roubo de 8 vozes com fade,
-auto-release de 750 ms e cancelamento, key-up real e fallback latch,
-invariantes (sem notas presas ou vozes duplicadas) e testes de tempo com
-relógio injetado. Não implementar fbdev antes da lógica estar estável.
+Iniciar a **Fase 4 — Arte, som, i18n e acessibilidade**: vendorizar a fonte
+Inter com OFL (Q-001), criar `assets/manifest.toml` e `xtask assets --check`
+real, implementar síntese ALSA polifônica reaproveitando o envelope existente,
+áudio lazy/mute/volume/shutdown e checagens de contraste/NO_COLOR. Não
+implementar fbdev antes do áudio e dos assets estarem estáveis.
 
 ## 3. Resumo do produto
 
@@ -129,7 +131,7 @@ relógio injetado. Não implementar fbdev antes da lógica estar estável.
 | `docs/06-roadmap.md` | Fases e critérios de saída |
 | `docs/07-decisions-and-risks.md` | ADRs, premissas, questões |
 | `docs/08-i18n-catalog.md` | Strings e limites |
-| `framework.md` | Template arquitetural e de processo |
+| `framework.md` | Referência de processo copiada do toolkit; não é dependência de runtime |
 
 Ordem de precedência em conflito: este `AGENTS.md` para estado operacional;
 `docs/` para especificação; skill/framework para forma.
@@ -140,7 +142,7 @@ Ordem de precedência em conflito: este `AGENTS.md` para estado operacional;
 | --- | --- | --- | --- |
 | Q-001 | Vendorizar `Inter-Regular.ttf` + `OFL-Inter.txt`; download exige aprovação e registro de hash. | Fase 4 | bloqueia texto final no fb |
 | Q-002 | Confirmar driver, VT, resolução, bpp e grupo `video` no hardware real. | Fase 6 | não declarar validado antes |
-| Q-003 | Medir key-up por terminal (xterm, foot, kitty, alacritty, console) e registrar fallback observado. | Fases 2 e 6 | protocolo aprimorado implementado e validado em PTY; terminais reais ainda não medidos |
+| Q-003 | Medir key-up por terminal (xterm, foot, kitty, alacritty, console) e registrar fallback observado. | Fases 2 e 6 | lógica real/auto e sustain adiado testada em PTY; terminais reais ainda não medidos |
 | Q-004 | Validar 24/16 bpp e resoluções menores; se indisponível, registrar pendência. | Fase 6 | alvo principal é 32 bpp |
 | Q-005 | Testar aliases `@ # % &` e a tecla morta `¨` em ABNT2 real. | Fase 2 | ajustar só se necessário |
 
@@ -204,6 +206,8 @@ claramente o que foi validado e o que permanece pendente.
 | 2026-10-31 | Fase 1: domínio puro, sessão, input, app, i18n, CLI, guardas e TUI placeholder | 65 testes unitários + 5 de integração; portões verdes com/sem `audio`; smoke em PTY; commit `0df048a` | `src/**`, `tests/cli.rs`, `AGENTS.md`, `docs/06-roadmap.md`, `docs/05-test-plan.md` |
 | 2026-10-31 | Sessão encerrada para desligamento após a Fase 1 | Handoff atualizado com commits `0df048a`/`829ce8c`; commit de encerramento local; sem push | `AGENTS.md` |
 | 2026-10-31 | Fase 2: TUI funcional, piano em células, efeitos, breakpoints, snapshots e PTY | 88 testes unitários + 5 CLI + 2 PTY + 15 snapshots; portões verdes com/sem `audio`; commit `c965c16` | `src/**`, `tests/tui_snapshots.rs`, `tests/pty.rs`, `tests/snapshots/**`, `docs/05`, `docs/06`, `README.md`, `AGENTS.md` |
+| 2026-10-31 | Extração do app para repositório próprio | `git init`, commit `9071c6d`, remoto público `danielexpe/piano-duas-oitavas`; toolkit deixou de rastrear a pasta | `.git/`, `AGENTS.md` |
+| 2026-10-31 | Fase 3: ciclo de vozes, key-up real, sustain adiado, invariantes e testes de tempo | 97 unitários; release/fade, auto-release só em `auto`, sequência determinística de 20 mil operações; portões completos verdes | `src/core/voice.rs`, `src/state/session.rs`, `src/app.rs`, `docs/05`, `docs/06`, `AGENTS.md` |
 
 ## 11. Fases
 
@@ -212,7 +216,7 @@ claramente o que foi validado e o que permanece pendente.
 | 0 — Planejamento | concluída em 2026-10-31 | — |
 | 1 — Fundação | concluída em 2026-10-31 | Núcleo testado + TUI placeholder |
 | 2 — TUI funcional | concluída em 2026-10-31; commit `c965c16` | Fluxo completo + snapshots |
-| 3 — Lógica rica | pendente | Invariantes e fallback de key-up |
+| 3 — Lógica rica | concluída em 2026-10-31 | Invariantes e fallback de key-up |
 | 4 — Arte/som/i18n | pendente | Fonte + áudio + acessibilidade |
 | 5 — Release desktop | pendente | Pacote validado |
 | 6 — Framebuffer | pendente | Console validado |
@@ -221,13 +225,15 @@ claramente o que foi validado e o que permanece pendente.
 ## 12. Notas para a próxima sessão
 
 - Handoff detalhado na seção 2 ("Ponto de retomada").
-- Comece pela Fase 3; não pule para fbdev.
+- Comece pela Fase 4; não pule para fbdev.
 - Reaproveite `core::*`, `state::Session`, `state::Effects`, `input::Action`,
   `app::App`, `render::scene::Scene`, `render::piano::PianoBoard` e
   `render::layout::Breakpoint`; não duplique regras nem geometria.
 - `Q` e `M` são notas: não reintroduza atalhos `Q`/`M`.
 - O protocolo aprimorado do crossterm é tentado após o primeiro frame; se
-  suportado, o HUD mostra `real`. O fallback de 750 ms + latch continua ativo.
+  suportado, o HUD mostra `real`. No modo `auto`, o fallback de 750 ms + latch
+  continua ativo; no modo `real`, `NoteOff` encerra e o sustain adia releases
+  até soltar Espaço.
 - A TUI já é funcional: piano em células, keycaps, efeitos e ajuda modal.
   `--color` e `--seed` continuam aceitos sem efeito no desenho; `--no-animations`
   já altera o desenho.

@@ -1,5 +1,7 @@
+use std::time::Duration;
+
 use crate::core::note::{MidiNote, MAX_BASE_OCTAVE, MIN_BASE_OCTAVE};
-use crate::core::voice::VoiceAllocator;
+use crate::core::voice::{VoiceAllocator, SUSTAIN_RELEASE};
 use crate::i18n::{Key, Language};
 
 pub const DEFAULT_BASE_OCTAVE: u8 = 3;
@@ -165,9 +167,14 @@ impl Session {
         self.keyup = mode;
     }
 
-    pub fn release_all(&mut self) {
-        self.voices.release_all();
+    pub fn release_all(&mut self, now: Duration) -> Vec<MidiNote> {
+        let released = self.voices.release_all(now, SUSTAIN_RELEASE);
         self.sustain = SustainMode::Off;
+        released
+    }
+
+    pub fn release_unheld(&mut self, now: Duration) -> Vec<MidiNote> {
+        self.voices.release_unheld(now, SUSTAIN_RELEASE)
     }
 
     pub fn sound_state_key(&self) -> Key {

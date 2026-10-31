@@ -5,7 +5,7 @@
 | 0 — Descoberta | escopo, regras, telas, hardware, licenças | specs aprovadas | concluída em 2026-10-31 |
 | 1 — Fundação | crate, núcleo puro, i18n, guards, CLI | testes de domínio + TUI placeholder | concluída em 2026-10-31 |
 | 2 — TUI funcional | piano completo, input, efeitos, ajuda | fluxo completo + snapshots | concluída em 2026-10-31; commit `c965c16` |
-| 3 — Lógica rica | vozes, sustain, auto-release, key-up | invariantes e fallback testados | pendente |
+| 3 — Lógica rica | vozes, sustain, auto-release, key-up | invariantes e fallback testados | concluída em 2026-10-31; captura determinística adiada para as Fases 4/5 |
 | 4 — Arte/som/i18n | fonte, áudio, acessibilidade | áudio + fonte + i18n validados | pendente |
 | 5 — Release desktop | licenças, docs, medições, pacote | release validado | pendente |
 | 6 — Framebuffer | fbdev, texto, scaling, sinais | console validado + pacote | pendente |
@@ -53,12 +53,20 @@
 
 ### Fase 3 — Lógica rica
 
-- [ ] Alocação de 8 vozes, roubo, retrigger e fade
-- [ ] Auto-release de 750 ms e cancelamento correto
-- [ ] Key-up real (protocolo aprimorado) e fallback latch
-- [ ] Invariantes: sem notas presas, sem vozes duplicadas, sem estouro
-- [ ] Testes de tempo com relógio injetado
+- [x] Alocação de 8 vozes, roubo, retrigger e fade
+- [x] Auto-release de 750 ms e cancelamento correto
+- [x] Key-up real (protocolo aprimorado) e fallback latch
+- [x] Invariantes: sem notas presas, sem vozes duplicadas, sem estouro
+- [x] Testes de tempo com relógio injetado
 - [ ] `--seed` sem efeito musical; captura determinística
+      (`--seed` continua aceito e sem efeito musical; a captura PNG chega nas
+      Fases 4/5)
+
+> Fase 3 concluída em 2026-10-31 para o critério de saída (invariantes e
+> fallback testados). O ciclo de vozes agora tem release de 180 ms, release de
+> sustain de 450 ms, fade de roubo de 5 ms e auto-release apenas no modo
+> `auto`; no modo `real`, o sustain adia o release até soltar Espaço. A
+> captura determinística segue pendente por depender do pipeline de assets.
 
 ### Fase 4 — Arte, som, i18n e acessibilidade
 

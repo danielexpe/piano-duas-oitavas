@@ -2,8 +2,9 @@
 
 > Congelado na Fase 0. Atualizado na Fase 1 com os portões automatizados e o
 > smoke em PTY. Atualizado na Fase 2 com snapshots de TUI, efeitos, breakpoints
-> e teste PTY de restauração; nenhuma validação em terminal/VT real foi
-> executada ainda.
+> e teste PTY de restauração. Atualizado na Fase 3 com o ciclo de vozes,
+> key-up real, invariantes e testes de tempo com relógio injetado; nenhuma
+> validação em terminal/VT real foi executada ainda.
 
 ## 1. Pirâmide
 
@@ -92,3 +93,4 @@ protocolo aprimorado é respondido e `Key-up: auto` com `TERM=linux`; se
 | --- | --- | --- | --- |
 | 2026-10-31 | Linux, rustc 1.99.1, PTY via `script` | `fmt`, `clippy` e `test` com/sem `audio`; `xtask assets --check`; builds release; códigos de saída 1/2/3; nota `[C3]`, ajuda F1 e restauração do alternate screen | TUI em terminais reais, key-up real, resize, snapshots, fb, áudio, matriz manual completa |
 | 2026-10-31 | Linux, `TestBackend` e PTY via `script` | Fase 2: 15 snapshots (80 × 24, 100 × 28, 120 × 36; pt/en; idle/pressed/glow/sustain/help/mudo/no-animations), teste PTY de desenho e restauração, protocolo aprimorado respondido (`Key-up: real`), portões completos com/sem `audio` | Revisão visual em terminais reais, key-up real por terminal, resize interativo, fb, áudio e matriz manual completa |
+| 2026-10-31 | Linux, testes unitários e sequência determinística | Fase 3: release de 180/450 ms, fade de roubo de 5 ms, auto-release só no modo `auto`, sustain real adiando key-up, key-up processado com ajuda aberta, 20 mil operações invariantes sem voz duplicada/estouro; 97 unitários + integração; portões verdes com/sem `audio` | Key-up real por terminal e captura determinística (Fases 4/5) |
