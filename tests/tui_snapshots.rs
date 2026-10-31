@@ -1,3 +1,5 @@
+#![cfg(feature = "audio")]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;

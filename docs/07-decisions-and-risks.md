@@ -125,13 +125,13 @@
 - `/dev/fb0` disponível no console alvo; usuário no grupo `video`.
 - Sem rede em runtime.
 - Fonte e arte embutidas; arte vetorial gerada pelo próprio código.
-- O usuário aprova a aquisição da fonte Inter na Fase 4.
+- O usuário aprovou a aquisição da fonte Inter em 2026-10-31 (Q-001 resolvida).
 
 ## Questões abertas
 
 | ID | Questão | Prazo | Estado |
 | --- | --- | --- | --- |
-| Q-001 | Vendorizar `Inter-Regular.ttf` + `OFL-Inter.txt` exige download; aprovar origem e hash. | Fase 4 | aberta |
+| Q-001 | Vendorizar `Inter-Regular.ttf` + `OFL-Inter.txt` exige download; aprovar origem e hash. | Fase 4 | resolvida em 2026-10-31: Inter 4.1 de `rsms/inter`, hashes em `assets/manifest.toml` |
 | Q-002 | Confirmar em hardware real: driver, VT, resolução, bpp e grupo `video`. | Fase 6 | aberta |
 | Q-003 | Medir key-up real por terminal (xterm, foot, kitty, alacritty, console) e registrar o fallback observado. | Fases 2 e 6 | aberta |
 | Q-004 | Validar 24/16 bpp e resoluções menores em hardware; se indisponível, registrar pendente. | Fase 6 | aberta |
@@ -158,5 +158,5 @@ persistência e licenças estão congelados em `docs/01`.
 | 60 FPS em 1080p | CPU alta | cache de fundo/fonte, frame só com animação ativa |
 | Baixa resolução no fb | texto ilegível | breakpoint Minimal e escala mínima de 11 px |
 | Troca de VT durante execução | resíduos no console | detectar perda de foco/erro, restaurar e sair |
-| Fonte Inter não aprovada | bloqueio da Fase 4 | Q-001; fallback temporário só em desenvolvimento, nunca no release |
+| Fonte Inter sem glifos | texto quebrado no fb | Q-001 resolvida; teste de cobertura em `src/assets.rs` |
 | Sem validação de hardware | release frágil | registrar pendência; não declarar validado |

@@ -130,7 +130,7 @@ impl Scene {
             ),
             muted: session.muted(),
             sustain_active: session.sustain() != crate::state::SustainMode::Off,
-            audio_unavailable: false,
+            audio_unavailable: app.audio_unavailable(),
         };
 
         Self {

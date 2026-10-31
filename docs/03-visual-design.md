@@ -98,8 +98,9 @@ Z X C V B N M
 
 ## 4. Tipografia
 
-- Fonte planejada: **Inter Regular**, TTF, OFL 1.1, embutida na Fase 4
-  (`assets/fonts/Inter-Regular.ttf`). Aquisição exige aprovação de download.
+- Fonte: **Inter Regular 4.1**, TTF, OFL 1.1, vendorizada em
+  `assets/fonts/Inter-Regular.ttf` na Fase 4, com hash verificado pelo
+  manifesto.
 - TUI: fonte do terminal; usar apenas ASCII, acentos do catálogo e `#`, `+`,
   `-`, `[`, `]`.
 - Tamanhos no fb: título 28 px; HUD 18 px; rótulo de nota 16 px; tecla física

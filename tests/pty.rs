@@ -21,7 +21,7 @@ fn linux_term_falls_back_to_auto_keyup() {
     }
 
     let binary = env!("CARGO_BIN_EXE_piano-duas-oitavas");
-    let command = format!("stty rows 24 cols 80; exec {binary}");
+    let command = format!("stty rows 24 cols 80; exec {binary} --no-audio");
     let mut child = Command::new("script")
         .args(["-q", "-e", "-c", &command, "/dev/null"])
         .env("TERM", "linux")
@@ -55,7 +55,7 @@ fn tui_restores_the_terminal_on_escape() {
     }
 
     let binary = env!("CARGO_BIN_EXE_piano-duas-oitavas");
-    let command = format!("stty rows 24 cols 80; exec {binary}");
+    let command = format!("stty rows 24 cols 80; exec {binary} --no-audio");
     let mut child = Command::new("script")
         .args(["-q", "-e", "-c", &command, "/dev/null"])
         .env("TERM", "xterm-256color")

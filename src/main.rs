@@ -6,6 +6,7 @@ use piano_duas_oitavas::cli::{Backend, Cli};
 use piano_duas_oitavas::error::AppError;
 use piano_duas_oitavas::render::tui;
 use piano_duas_oitavas::state::Session;
+use piano_duas_oitavas::theme::ColorMode;
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
@@ -25,7 +26,8 @@ fn run(cli: Cli) -> Result<(), AppError> {
 
     let session = Session::new(cli.octave, cli.volume, cli.lang.into(), cli.no_audio)
         .ok_or(AppError::InvalidOptions("oitava ou volume fora da faixa"))?;
-    let app = App::with_options(session, cli.no_animations);
+    let mut app = App::with_options(session, cli.no_animations);
+    app.set_color_mode(ColorMode::resolve_from_env(cli.color));
 
     match cli.backend {
         Backend::Auto | Backend::Tui => tui::run(app),

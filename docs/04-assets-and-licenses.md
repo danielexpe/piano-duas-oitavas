@@ -25,13 +25,17 @@ assets/manifest.toml
 
 | Asset | Origem | Derivado | Uso | Licença |
 | --- | --- | --- | --- | --- |
-| fonte de UI | `assets/src/Inter-Regular.ttf` (a vendorizar) | `assets/fonts/Inter-Regular.ttf` | texto no fb, HUD, ajuda | OFL 1.1 |
+| fonte de UI | `Inter-4.1.zip` (`extras/ttf/Inter-Regular.ttf`) | `assets/fonts/Inter-Regular.ttf` | texto no fb, HUD, ajuda | OFL 1.1 |
 | piano vetorial | código (`render/fb.rs`) | — | teclas brancas/pretas | CC BY 4.0 (arte original do projeto) |
 | teclado físico vetorial | código (`render/fb.rs`) | — | keycaps e rótulos | CC BY 4.0 (arte original do projeto) |
 | paleta/tokens | código (`theme.rs`) | — | cores e estados | MIT (código) |
 
-> A fonte Inter ainda não está no repositório. O download é uma ação de rede e
-> exige aprovação explícita do usuário na Fase 4 (ver Q-001 em `docs/07`).
+> A fonte Inter 4.1 está vendorizada em `assets/fonts/Inter-Regular.ttf`
+> (SHA-256 `40d692fce188e4471e2b3cba937be967878f631ad3ebbbdcd587687c7ebe0c82`),
+> obtida de `https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip`
+> com aprovação do usuário em 2026-10-31. Origem, versão e hashes ficam em
+> `assets/manifest.toml` e são verificados por `cargo xtask assets --check`.
+> Q-001 está resolvida em `docs/07`.
 
 ## 3. Fontes
 
@@ -41,8 +45,8 @@ assets/manifest.toml
 | Inter (texto da licença) | `assets/fonts/OFL-Inter.txt` | OFL 1.1 |
 
 - Incluir o texto da licença no pacote.
-- Verificar cobertura dos glifos do catálogo (`docs/08`) antes de fechar a
-  Fase 4.
+- Cobertura dos glifos do catálogo (`docs/08`) verificada por teste em
+  `src/assets.rs` na Fase 4.
 - A TUI não usa a fonte embutida; usa a fonte do terminal.
 
 ## 4. Licenças do projeto

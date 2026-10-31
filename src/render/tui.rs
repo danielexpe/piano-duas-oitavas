@@ -75,16 +75,18 @@ pub fn run(mut app: App) -> Result<(), AppError> {
     }
 
     app.release_all();
+    app.shutdown();
     Ok(())
 }
 
 pub fn draw(frame: &mut Frame, app: &App) {
     let area = frame.area();
     let scene = Scene::from_app(app);
+    let palette = theme::Palette::new(app.color_mode());
     let breakpoint = layout::detect(area.width, area.height);
 
     frame.render_widget(
-        Block::default().style(Style::new().bg(theme::SURFACE)),
+        Block::default().style(Style::new().bg(palette.surface)),
         area,
     );
 
@@ -99,69 +101,75 @@ pub fn draw(frame: &mut Frame, app: &App) {
     ])
     .split(area);
 
-    draw_header(frame, rows[0], &scene, breakpoint);
-    draw_floating(frame, rows[1], &scene);
-    draw_piano(frame, rows[2], &scene);
-    draw_status(frame, rows[3], &scene);
-    draw_keyboard(frame, rows[4], &scene, breakpoint);
-    draw_footer(frame, rows[5], &scene);
+    draw_header(frame, rows[0], &scene, breakpoint, &palette);
+    draw_floating(frame, rows[1], &scene, &palette);
+    draw_piano(frame, rows[2], &scene, &palette);
+    draw_status(frame, rows[3], &scene, &palette);
+    draw_keyboard(frame, rows[4], &scene, breakpoint, &palette);
+    draw_footer(frame, rows[5], &scene, &palette);
 
     if scene.help_open {
         dim_background(frame);
-        draw_help(frame, &scene, app);
+        draw_help(frame, &scene, app, &palette);
     }
 }
 
-fn draw_header(frame: &mut Frame, area: Rect, scene: &Scene, breakpoint: Breakpoint) {
+fn draw_header(
+    frame: &mut Frame,
+    area: Rect,
+    scene: &Scene,
+    breakpoint: Breakpoint,
+    palette: &theme::Palette,
+) {
     let mut title = vec![Span::styled(
         Key::AppTitle.text(scene.language),
-        Style::new().fg(theme::ACCENT).add_modifier(Modifier::BOLD),
+        Style::new().fg(palette.accent).add_modifier(Modifier::BOLD),
     )];
     if breakpoint == Breakpoint::Wide {
         title.push(Span::raw("  "));
         title.push(Span::styled(
             Key::AppSubtitle.text(scene.language),
-            Style::new().fg(theme::TEXT_SECONDARY),
+            Style::new().fg(palette.text_secondary),
         ));
     }
     let hud = Line::from(vec![
         Span::styled(
             scene.hud.octave.clone(),
-            Style::new().fg(theme::TEXT_PRIMARY),
+            Style::new().fg(palette.text_primary),
         ),
         Span::raw("   "),
         Span::styled(
             scene.hud.volume.clone(),
-            Style::new().fg(theme::TEXT_PRIMARY),
+            Style::new().fg(palette.text_primary),
         ),
         Span::raw("   "),
         Span::styled(
             scene.hud.sound.clone(),
             Style::new().fg(if scene.hud.muted {
-                theme::DANGER
+                palette.danger
             } else {
-                theme::SUCCESS
+                palette.success
             }),
         ),
         Span::raw("   "),
         Span::styled(
             scene.hud.language.clone(),
-            Style::new().fg(theme::TEXT_SECONDARY),
+            Style::new().fg(palette.text_secondary),
         ),
     ]);
     frame.render_widget(
-        Paragraph::new(vec![Line::from(title), hud]).style(Style::new().bg(theme::SURFACE)),
+        Paragraph::new(vec![Line::from(title), hud]).style(Style::new().bg(palette.surface)),
         area,
     );
 }
 
-fn draw_floating(frame: &mut Frame, area: Rect, scene: &Scene) {
+fn draw_floating(frame: &mut Frame, area: Rect, scene: &Scene, palette: &theme::Palette) {
     let line = match scene.floating {
         Some(floating) => {
             let style = if floating.progress < 0.65 {
-                Style::new().fg(theme::ACCENT).add_modifier(Modifier::BOLD)
+                Style::new().fg(palette.accent).add_modifier(Modifier::BOLD)
             } else {
-                Style::new().fg(theme::TEXT_SECONDARY)
+                Style::new().fg(palette.text_secondary)
             };
             Line::from(Span::styled(floating.note.name(), style))
         }
@@ -170,131 +178,141 @@ fn draw_floating(frame: &mut Frame, area: Rect, scene: &Scene) {
     frame.render_widget(
         Paragraph::new(line)
             .alignment(Alignment::Center)
-            .style(Style::new().bg(theme::SURFACE)),
+            .style(Style::new().bg(palette.surface)),
         area,
     );
 }
 
-fn draw_piano(frame: &mut Frame, area: Rect, scene: &Scene) {
+fn draw_piano(frame: &mut Frame, area: Rect, scene: &Scene, palette: &theme::Palette) {
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(Style::new().fg(theme::ACCENT_SOFT))
-        .style(Style::new().bg(theme::SURFACE))
+        .border_style(Style::new().fg(palette.accent_soft))
+        .style(Style::new().bg(palette.surface))
         .title(Span::styled(
             scene.hud.octave.clone(),
-            Style::new().fg(theme::ACCENT),
+            Style::new().fg(palette.accent),
         ));
     let inner = block.inner(area);
     let board = PianoBoard::build(scene, inner.width, inner.height);
     frame.render_widget(block, area);
     frame.render_widget(
-        Paragraph::new(board.lines()).style(Style::new().bg(theme::SURFACE)),
+        Paragraph::new(board.lines_with(palette)).style(Style::new().bg(palette.surface)),
         inner,
     );
 }
 
-fn draw_status(frame: &mut Frame, area: Rect, scene: &Scene) {
+fn draw_status(frame: &mut Frame, area: Rect, scene: &Scene, palette: &theme::Palette) {
     let mut spans = vec![
         Span::styled(
             scene.hud.sustain.clone(),
             Style::new().fg(if scene.hud.sustain_active {
-                theme::SUCCESS
+                palette.success
             } else {
-                theme::TEXT_SECONDARY
+                palette.text_secondary
             }),
         ),
         Span::raw("   "),
         Span::styled(
             scene.hud.keyup.clone(),
-            Style::new().fg(theme::TEXT_SECONDARY),
+            Style::new().fg(palette.text_secondary),
         ),
     ];
     if scene.hud.audio_unavailable {
         spans.push(Span::raw("   "));
         spans.push(Span::styled(
             Key::HudAudioUnavailable.text(scene.language),
-            Style::new().fg(theme::DANGER),
+            Style::new().fg(palette.danger),
         ));
     }
     if scene.hud.muted {
         spans.push(Span::raw("   "));
         spans.push(Span::styled(
             Key::HudMuted.text(scene.language),
-            Style::new().fg(theme::DANGER).add_modifier(Modifier::BOLD),
+            Style::new().fg(palette.danger).add_modifier(Modifier::BOLD),
         ));
     }
     frame.render_widget(
-        Paragraph::new(Line::from(spans)).style(Style::new().bg(theme::SURFACE)),
+        Paragraph::new(Line::from(spans)).style(Style::new().bg(palette.surface)),
         area,
     );
 }
 
-fn draw_keyboard(frame: &mut Frame, area: Rect, scene: &Scene, breakpoint: Breakpoint) {
+fn draw_keyboard(
+    frame: &mut Frame,
+    area: Rect,
+    scene: &Scene,
+    breakpoint: Breakpoint,
+    palette: &theme::Palette,
+) {
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(Style::new().fg(theme::ACCENT_SOFT))
-        .style(Style::new().bg(theme::SURFACE))
+        .border_style(Style::new().fg(palette.accent_soft))
+        .style(Style::new().bg(palette.surface))
         .title(Span::styled(
             Key::KeyboardTitle.text(scene.language),
-            Style::new().fg(theme::TEXT_SECONDARY),
+            Style::new().fg(palette.text_secondary),
         ));
     let inner = block.inner(area);
-    let lines = keyboard_lines(scene, breakpoint.keyboard_style());
+    let lines = keyboard_lines(scene, breakpoint.keyboard_style(), palette);
     frame.render_widget(block, area);
     frame.render_widget(
-        Paragraph::new(lines).style(Style::new().bg(theme::SURFACE)),
+        Paragraph::new(lines).style(Style::new().bg(palette.surface)),
         inner,
     );
 }
 
-fn keyboard_lines(scene: &Scene, style: KeyboardStyle) -> Vec<Line<'static>> {
+fn keyboard_lines(
+    scene: &Scene,
+    style: KeyboardStyle,
+    palette: &theme::Palette,
+) -> Vec<Line<'static>> {
     match style {
         KeyboardStyle::Full => scene
             .keyboard
             .iter()
-            .map(|row| keyboard_row(row, true))
+            .map(|row| keyboard_row(row, true, palette))
             .collect(),
         KeyboardStyle::BaseRows => scene
             .keyboard
             .iter()
             .skip(2)
-            .map(|row| keyboard_row(row, true))
+            .map(|row| keyboard_row(row, true, palette))
             .collect(),
-        KeyboardStyle::CompactBase => vec![compact_keyboard_row(scene)],
+        KeyboardStyle::CompactBase => vec![compact_keyboard_row(scene, palette)],
     }
 }
 
-fn keyboard_row(row: &[Keycap], with_note: bool) -> Line<'static> {
+fn keyboard_row(row: &[Keycap], with_note: bool, palette: &theme::Palette) -> Line<'static> {
     let mut spans = Vec::new();
     for keycap in row {
-        spans.extend(keycap_spans(keycap, with_note));
+        spans.extend(keycap_spans(keycap, with_note, palette));
     }
     Line::from(spans)
 }
 
-fn compact_keyboard_row(scene: &Scene) -> Line<'static> {
+fn compact_keyboard_row(scene: &Scene, palette: &theme::Palette) -> Line<'static> {
     let mut spans = Vec::new();
     for label in scene::BASE_OCTAVE_KEYCAPS {
         if let Some(keycap) = scene.keycap(label) {
-            spans.extend(keycap_spans(keycap, false));
+            spans.extend(keycap_spans(keycap, false, palette));
         }
     }
     Line::from(spans)
 }
 
-fn keycap_spans(keycap: &Keycap, with_note: bool) -> Vec<Span<'static>> {
+fn keycap_spans(keycap: &Keycap, with_note: bool, palette: &theme::Palette) -> Vec<Span<'static>> {
     let mut spans = Vec::new();
     spans.push(Span::raw(" "));
     let key_style = if keycap.held {
         Style::new()
-            .fg(theme::TEXT_ON_LIGHT)
-            .bg(theme::ACCENT)
+            .fg(palette.text_on_light)
+            .bg(palette.accent)
             .add_modifier(Modifier::BOLD)
     } else if keycap.note.is_some() {
-        Style::new().fg(theme::ACCENT)
+        Style::new().fg(palette.accent)
     } else {
         Style::new()
-            .fg(theme::TEXT_SECONDARY)
+            .fg(palette.text_secondary)
             .add_modifier(Modifier::DIM)
     };
     spans.push(Span::styled(keycap.label.to_string(), key_style));
@@ -302,58 +320,58 @@ fn keycap_spans(keycap: &Keycap, with_note: bool) -> Vec<Span<'static>> {
         match keycap.note {
             Some(note) => {
                 let note_style = if keycap.held {
-                    Style::new().fg(theme::ACCENT).add_modifier(Modifier::BOLD)
+                    Style::new().fg(palette.accent).add_modifier(Modifier::BOLD)
                 } else {
-                    Style::new().fg(theme::TEXT_SECONDARY)
+                    Style::new().fg(palette.text_secondary)
                 };
                 spans.push(Span::styled(format!(":{}", note.name()), note_style));
             }
-            None => spans.push(Span::styled(":--", Style::new().fg(theme::SURFACE_RAISED))),
+            None => spans.push(Span::styled(":--", Style::new().fg(palette.surface_raised))),
         }
     }
     spans.push(Span::raw(" "));
     spans
 }
 
-fn draw_footer(frame: &mut Frame, area: Rect, scene: &Scene) {
+fn draw_footer(frame: &mut Frame, area: Rect, scene: &Scene, palette: &theme::Palette) {
     let line = Line::from(vec![
         Span::styled(
             Key::FooterHelp.text(scene.language),
-            Style::new().fg(theme::TEXT_SECONDARY),
+            Style::new().fg(palette.text_secondary),
         ),
         Span::raw("   "),
         Span::styled(
             Key::FooterLanguage.text(scene.language),
-            Style::new().fg(theme::TEXT_SECONDARY),
+            Style::new().fg(palette.text_secondary),
         ),
         Span::raw("   "),
         Span::styled(
             Key::FooterMute.text(scene.language),
-            Style::new().fg(theme::TEXT_SECONDARY),
+            Style::new().fg(palette.text_secondary),
         ),
         Span::raw("   "),
         Span::styled(
             Key::FooterQuit.text(scene.language),
-            Style::new().fg(theme::TEXT_SECONDARY),
+            Style::new().fg(palette.text_secondary),
         ),
     ]);
     frame.render_widget(
-        Paragraph::new(line).style(Style::new().bg(theme::SURFACE)),
+        Paragraph::new(line).style(Style::new().bg(palette.surface)),
         area,
     );
 }
 
-fn draw_help(frame: &mut Frame, scene: &Scene, app: &App) {
-    let lines = help_lines(scene.language, app.session().keyup());
+fn draw_help(frame: &mut Frame, scene: &Scene, app: &App, palette: &theme::Palette) {
+    let lines = help_lines(scene.language, app.session().keyup(), palette);
     let area = modal_rect(frame.area(), lines.len());
     frame.render_widget(Clear, area);
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(Style::new().fg(theme::ACCENT))
-        .style(Style::new().bg(theme::PANEL))
+        .border_style(Style::new().fg(palette.accent))
+        .style(Style::new().bg(palette.panel))
         .title(Span::styled(
             Key::HelpTitle.text(scene.language),
-            Style::new().fg(theme::ACCENT).add_modifier(Modifier::BOLD),
+            Style::new().fg(palette.accent).add_modifier(Modifier::BOLD),
         ));
     frame.render_widget(
         Paragraph::new(lines)
@@ -363,10 +381,14 @@ fn draw_help(frame: &mut Frame, scene: &Scene, app: &App) {
     );
 }
 
-fn help_lines(language: Language, keyup: KeyUpMode) -> Vec<Line<'static>> {
-    let normal = Style::new().fg(theme::TEXT_PRIMARY);
-    let heading = Style::new().fg(theme::ACCENT).add_modifier(Modifier::BOLD);
-    let secondary = Style::new().fg(theme::TEXT_SECONDARY);
+fn help_lines(
+    language: Language,
+    keyup: KeyUpMode,
+    palette: &theme::Palette,
+) -> Vec<Line<'static>> {
+    let normal = Style::new().fg(palette.text_primary);
+    let heading = Style::new().fg(palette.accent).add_modifier(Modifier::BOLD);
+    let secondary = Style::new().fg(palette.text_secondary);
     let keyup_line = match keyup {
         KeyUpMode::Real => Key::HelpKeyupReal,
         KeyUpMode::Auto => Key::HelpKeyupFallback,
@@ -423,6 +445,7 @@ mod tests {
     use crate::app::App;
     use crate::i18n::Language;
     use crate::state::Session;
+    use crate::theme::ColorMode;
     use ratatui::backend::TestBackend;
 
     fn app() -> App {
@@ -451,6 +474,30 @@ mod tests {
             assert_eq!(text.lines().count(), usize::from(height));
             assert!(text.contains("C3"));
         }
+    }
+
+    #[test]
+    fn mono_mode_keeps_non_color_state_markers() {
+        let mut app = app();
+        app.set_color_mode(ColorMode::Mono);
+        app.handle(crate::input::Action::NoteOn(
+            crate::core::note::MidiNote::from_midi(48).unwrap(),
+        ));
+        app.handle(crate::input::Action::SustainPress);
+        let text = render(&app, 80, 24);
+        assert!(text.contains("[C3]"), "pressed marker ausente");
+        assert!(text.contains("Sustain: latch"), "estado de sustain ausente");
+        assert!(text.contains('='), "barra de sustain ausente");
+    }
+
+    #[test]
+    fn help_wraps_on_a_narrow_screen() {
+        let mut app = app();
+        app.handle(crate::input::Action::ToggleLanguage);
+        app.handle(crate::input::Action::ToggleHelp);
+        let text = render(&app, 60, 20);
+        assert_eq!(text.lines().count(), 20);
+        assert!(text.contains("Help"));
     }
 
     #[test]

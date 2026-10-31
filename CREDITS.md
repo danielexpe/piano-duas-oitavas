@@ -10,10 +10,13 @@
 
 | Fonte | Autor | Licença |
 | --- | --- | --- |
-| Inter Regular (planejada para a Fase 4) | Rasmus Andersson | OFL 1.1 |
+| Inter Regular 4.1 | Rasmus Andersson | OFL 1.1 |
 
-A fonte ainda não está vendorizada no repositório; a aquisição depende de
-aprovação de download e registro de hash (Q-001 em `docs/07`).
+A fonte está vendorizada em `assets/fonts/Inter-Regular.ttf`, obtida de
+`https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip`
+(`extras/ttf/Inter-Regular.ttf`) com aprovação do usuário em 2026-10-31. O
+hash e a origem ficam em `assets/manifest.toml` e são verificados por
+`cargo xtask assets --check` (Q-001 resolvida em `docs/07`).
 
 ## Crates
 

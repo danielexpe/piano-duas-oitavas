@@ -20,13 +20,15 @@ Build-time crates in `xtask`:
 
 | Crate | License |
 | --- | --- |
-| — (nenhuma crate externa no v1) | — |
+| `serde` | MIT OR Apache-2.0 |
+| `sha2` | MIT OR Apache-2.0 |
+| `toml` | MIT OR Apache-2.0 |
 
 ## Fonts
 
 | Font | License | License file |
 | --- | --- | --- |
-| Inter Regular (a vendorizar na Fase 4) | OFL 1.1 | `assets/fonts/OFL-Inter.txt` |
+| Inter Regular 4.1 | OFL 1.1 | `assets/fonts/OFL-Inter.txt` |
 
 ## System libraries (not distributed)
 

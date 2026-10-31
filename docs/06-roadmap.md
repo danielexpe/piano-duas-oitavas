@@ -6,7 +6,7 @@
 | 1 — Fundação | crate, núcleo puro, i18n, guards, CLI | testes de domínio + TUI placeholder | concluída em 2026-10-31 |
 | 2 — TUI funcional | piano completo, input, efeitos, ajuda | fluxo completo + snapshots | concluída em 2026-10-31; commit `c965c16` |
 | 3 — Lógica rica | vozes, sustain, auto-release, key-up | invariantes e fallback testados | concluída em 2026-10-31; captura determinística adiada para as Fases 4/5 |
-| 4 — Arte/som/i18n | fonte, áudio, acessibilidade | áudio + fonte + i18n validados | pendente |
+| 4 — Arte/som/i18n | fonte, áudio, acessibilidade | áudio + fonte + i18n validados | concluída em 2026-10-31; áudio sem validação em hardware |
 | 5 — Release desktop | licenças, docs, medições, pacote | release validado | pendente |
 | 6 — Framebuffer | fbdev, texto, scaling, sinais | console validado + pacote | pendente |
 | 7 — Backlog | evdev, persistência, gravação, MIDI, temas | priorizado pelo usuário | pendente |
@@ -70,13 +70,21 @@
 
 ### Fase 4 — Arte, som, i18n e acessibilidade
 
-- [ ] Fonte Inter vendorizada com OFL e aprovação de download
-- [ ] `assets/manifest.toml` e `xtask assets --check`
-- [ ] Síntese ALSA polifônica e testes sem hardware
-- [ ] Áudio lazy, mute, volume, shutdown limpo
-- [ ] Contraste, mono/`NO_COLOR`, estados sem depender de cor
-- [ ] Catálogo completo e teste de strings longas
-- [ ] Cobertura de glifos
+- [x] Fonte Inter vendorizada com OFL e aprovação de download
+- [x] `assets/manifest.toml` e `xtask assets --check`
+- [x] Síntese ALSA polifônica e testes sem hardware
+- [x] Áudio lazy, mute, volume, shutdown limpo
+- [x] Contraste, mono/`NO_COLOR`, estados sem depender de cor
+- [x] Catálogo completo e teste de strings longas
+- [x] Cobertura de glifos
+
+> Fase 4 concluída em 2026-10-31. A fonte Inter 4.1 foi vendorizada com OFL e
+> hash verificado; `xtask assets --check` falha em divergência. O áudio usa
+> síntese aditiva de 8 vozes, ALSA dinâmico, thread própria, canal limitado,
+> inicialização lazy e shutdown com fade de 120 ms. A validação foi feita por
+> testes de síntese e portões sem hardware; ouvir em ALSA real continua
+> pendente. Acessibilidade cobre `NO_COLOR`, 256/16/mono, contraste mínimo e
+> estados com marcadores não-cromáticos.
 
 ### Fase 5 — Release desktop
 

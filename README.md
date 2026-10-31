@@ -4,12 +4,13 @@ Piano de duas oitavas em TUI/fbdev com mapeamento do teclado alfanumérico,
 síntese polifônica e efeitos visuais.
 
 Aplicação Rust para console Linux com TUI (`ratatui` + `crossterm`) e backend
-framebuffer fbdev (`/dev/fb0`). Roda offline, sem rede em runtime; a fonte será
-embutida no binário e o piano é desenhado vetorialmente.
+framebuffer fbdev (`/dev/fb0`). Roda offline, sem rede em runtime; a fonte Inter é embutida no binário e o
+piano é desenhado vetorialmente.
 
-> **Estado:** Fase 2 concluída (TUI funcional: piano, teclado físico, efeitos,
-> breakpoints, snapshots e PTY). O som, o framebuffer e o release ainda não
-> foram implementados; este README descreve o produto alvo.
+> **Estado:** Fase 4 concluída (fonte Inter vendorizada, síntese ALSA
+> polifônica, áudio lazy, modo mono/`NO_COLOR`, catálogo e cobertura de
+> glifos). O framebuffer e o release ainda não foram implementados; este
+> README descreve o produto alvo.
 > Especificação: `docs/01`–`08`. Memória operacional: `AGENTS.md`.
 > Arquitetura: `framework.md`.
 
@@ -133,5 +134,5 @@ confirma a restauração do terminal, sendo pulado se `script` não existir.
 
 ## Licença
 
-Código MIT. Arte original CC BY 4.0. Fonte Inter sob OFL 1.1 (a vendorizar na
-Fase 4). Veja `THIRD_PARTY_NOTICES.md` e `CREDITS.md`.
+Código MIT. Arte original CC BY 4.0. Fonte Inter 4.1 sob OFL 1.1
+(vendorizada em `assets/fonts/`). Veja `THIRD_PARTY_NOTICES.md` e `CREDITS.md`.

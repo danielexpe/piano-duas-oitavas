@@ -149,6 +149,75 @@ mod tests {
         assert_eq!(Language::En.code(), "en");
     }
 
+    fn documented_limit(key: Key) -> Option<usize> {
+        Some(match key {
+            Key::AppTitle => 24,
+            Key::AppSubtitle => 48,
+            Key::HudOctave => 28,
+            Key::HudVolume => 12,
+            Key::HudSound => 20,
+            Key::HudMuted => 8,
+            Key::HudAudioUnavailable => 16,
+            Key::HudSustain => 20,
+            Key::HudLanguage => 20,
+            Key::HudKeyup => 20,
+            Key::StateOn => 8,
+            Key::StateOff => 10,
+            Key::StateLatch => 8,
+            Key::StateReal => 8,
+            Key::StateAuto => 8,
+            Key::LangPt | Key::LangEn => 8,
+            Key::KeyboardTitle => 20,
+            Key::HelpTitle => 8,
+            Key::HelpClose => 32,
+            Key::HelpNotesTitle => 20,
+            Key::HelpNotesWhite => 56,
+            Key::HelpNotesBlack => 40,
+            Key::HelpSolfeges => 40,
+            Key::HelpControlsTitle => 12,
+            Key::HelpSustain => 60,
+            Key::HelpOctave => 48,
+            Key::HelpVolume => 48,
+            Key::HelpMute | Key::HelpLanguage | Key::HelpQuit => 36,
+            Key::HelpHelp => 36,
+            Key::HelpKeyupReal | Key::HelpKeyupFallback => 72,
+            Key::HelpNoPersistence => 40,
+            Key::FooterHelp | Key::FooterLanguage | Key::FooterMute | Key::FooterQuit => 12,
+            Key::ErrorNoTty | Key::ErrorFbPermission | Key::ErrorFbVt => 80,
+            Key::ErrorAudioUnavailable => 72,
+        })
+    }
+
+    fn sample_text(key: Key, language: Language) -> String {
+        let template = key.text(language);
+        let arguments: &[(&str, &str)] = match key {
+            Key::HudOctave => &[("base", "6"), ("next", "7")],
+            Key::HudVolume => &[("pct", "100")],
+            Key::HudSound | Key::HudSustain | Key::HudKeyup => &[("state", "desligado")],
+            Key::HudLanguage => &[("lang", "PT-BR")],
+            Key::ErrorFbPermission => &[("path", "/dev/fb0")],
+            Key::ErrorFbVt => &[("tty", "/dev/tty1")],
+            _ => &[],
+        };
+        fill(template, arguments)
+    }
+
+    #[test]
+    fn catalog_strings_fit_documented_limits() {
+        for key in Key::ALL {
+            let Some(limit) = documented_limit(*key) else {
+                continue;
+            };
+            for language in [Language::Pt, Language::En] {
+                let text = sample_text(*key, language);
+                assert!(
+                    text.chars().count() <= limit,
+                    "{key:?} in {language:?} exceeds {limit} characters: {text:?}"
+                );
+            }
+        }
+    }
+
     #[test]
     fn help_lines_fit_compact_width() {
         for key in [

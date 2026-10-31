@@ -3,7 +3,7 @@ use ratatui::text::{Line, Span};
 
 use crate::core::note::MidiNote;
 use crate::render::scene::{NoteView, Scene};
-use crate::theme;
+use crate::theme::Palette;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Ink {
@@ -250,6 +250,10 @@ impl PianoBoard {
     }
 
     pub fn lines(&self) -> Vec<Line<'static>> {
+        self.lines_with(&Palette::default())
+    }
+
+    pub fn lines_with(&self, palette: &Palette) -> Vec<Line<'static>> {
         self.cells
             .iter()
             .map(|row| {
@@ -261,14 +265,17 @@ impl PianoBoard {
                         text.push(cell.ch);
                     } else {
                         if let Some(ink) = current {
-                            spans.push(Span::styled(std::mem::take(&mut text), style_for(ink)));
+                            spans.push(Span::styled(
+                                std::mem::take(&mut text),
+                                style_for_with(ink, palette),
+                            ));
                         }
                         current = Some(cell.ink);
                         text.push(cell.ch);
                     }
                 }
                 if let Some(ink) = current {
-                    spans.push(Span::styled(text, style_for(ink)));
+                    spans.push(Span::styled(text, style_for_with(ink, palette)));
                 }
                 Line::from(spans)
             })
@@ -277,38 +284,68 @@ impl PianoBoard {
 }
 
 pub fn style_for(ink: Ink) -> Style {
+    style_for_with(ink, &Palette::default())
+}
+
+pub fn style_for_with(ink: Ink, palette: &Palette) -> Style {
+    let mono = palette.mode.is_mono();
     match ink {
-        Ink::Surface => Style::new().fg(theme::TEXT_SECONDARY).bg(theme::SURFACE),
-        Ink::White => Style::new().fg(theme::TEXT_ON_LIGHT).bg(theme::IVORY),
+        Ink::Surface => Style::new().fg(palette.text_secondary).bg(palette.surface),
+        Ink::White => Style::new().fg(palette.text_on_light).bg(palette.ivory),
         Ink::WhitePressed => Style::new()
-            .fg(theme::TEXT_ON_LIGHT)
-            .bg(theme::IVORY_PRESSED)
-            .add_modifier(Modifier::BOLD),
-        Ink::WhiteGlow => Style::new().fg(theme::ACCENT).bg(theme::IVORY),
+            .fg(palette.text_on_light)
+            .bg(palette.ivory_pressed)
+            .add_modifier(Modifier::BOLD)
+            .add_modifier(if mono {
+                Modifier::REVERSED
+            } else {
+                Modifier::empty()
+            }),
+        Ink::WhiteGlow => Style::new().fg(palette.accent).bg(palette.ivory),
         Ink::WhiteSustain => Style::new()
-            .fg(theme::SUCCESS)
-            .bg(theme::IVORY)
-            .add_modifier(Modifier::BOLD),
-        Ink::Black => Style::new().fg(theme::TEXT_PRIMARY).bg(theme::EBONY),
+            .fg(palette.success)
+            .bg(palette.ivory)
+            .add_modifier(Modifier::BOLD)
+            .add_modifier(if mono {
+                Modifier::UNDERLINED
+            } else {
+                Modifier::empty()
+            }),
+        Ink::Black => Style::new().fg(palette.text_primary).bg(palette.ebony),
         Ink::BlackPressed => Style::new()
-            .fg(theme::TEXT_ON_LIGHT)
-            .bg(theme::EBONY_PRESSED)
-            .add_modifier(Modifier::BOLD),
-        Ink::BlackGlow => Style::new().fg(theme::ACCENT).bg(theme::EBONY),
+            .fg(palette.text_on_light)
+            .bg(palette.ebony_pressed)
+            .add_modifier(Modifier::BOLD)
+            .add_modifier(if mono {
+                Modifier::REVERSED
+            } else {
+                Modifier::empty()
+            }),
+        Ink::BlackGlow => Style::new().fg(palette.accent).bg(palette.ebony),
         Ink::BlackSustain => Style::new()
-            .fg(theme::SUCCESS)
-            .bg(theme::EBONY)
-            .add_modifier(Modifier::BOLD),
-        Ink::Accent => Style::new().fg(theme::ACCENT),
-        Ink::AccentSoft => Style::new().fg(theme::ACCENT_SOFT),
-        Ink::TextPrimary => Style::new().fg(theme::TEXT_PRIMARY),
-        Ink::TextSecondary => Style::new().fg(theme::TEXT_SECONDARY),
-        Ink::TextOnLight => Style::new().fg(theme::TEXT_ON_LIGHT),
+            .fg(palette.success)
+            .bg(palette.ebony)
+            .add_modifier(Modifier::BOLD)
+            .add_modifier(if mono {
+                Modifier::UNDERLINED
+            } else {
+                Modifier::empty()
+            }),
+        Ink::Accent => Style::new().fg(palette.accent),
+        Ink::AccentSoft => Style::new().fg(palette.accent_soft),
+        Ink::TextPrimary => Style::new().fg(palette.text_primary),
+        Ink::TextSecondary => Style::new().fg(palette.text_secondary),
+        Ink::TextOnLight => Style::new().fg(palette.text_on_light),
         Ink::Muted => Style::new()
-            .fg(theme::TEXT_SECONDARY)
-            .bg(theme::SURFACE_RAISED),
-        Ink::Danger => Style::new().fg(theme::DANGER),
-        Ink::Success => Style::new().fg(theme::SUCCESS),
+            .fg(palette.text_secondary)
+            .bg(palette.surface_raised)
+            .add_modifier(if mono {
+                Modifier::REVERSED
+            } else {
+                Modifier::empty()
+            }),
+        Ink::Danger => Style::new().fg(palette.danger),
+        Ink::Success => Style::new().fg(palette.success),
     }
 }
 

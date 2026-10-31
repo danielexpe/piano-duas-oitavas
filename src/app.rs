@@ -1,33 +1,40 @@
 use std::time::Duration;
 
+use crate::audio::Audio;
 use crate::core::note::MidiNote;
 use crate::core::voice::{VoiceAction, AUTO_RELEASE};
 use crate::input::Action;
 use crate::state::{effects, Effects, KeyUpMode, Session, SustainMode, VOLUME_STEP};
+use crate::theme::ColorMode;
 
 pub const LAST_NOTE_DISPLAY: Duration = Duration::from_millis(effects::FLOAT_MS);
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct App {
     session: Session,
     quit: bool,
     now: Duration,
     effects: Effects,
     no_animations: bool,
+    audio: Audio,
+    color_mode: ColorMode,
 }
 
 impl App {
-    pub const fn new(session: Session) -> Self {
+    pub fn new(session: Session) -> Self {
         Self::with_options(session, false)
     }
 
-    pub const fn with_options(session: Session, no_animations: bool) -> Self {
+    pub fn with_options(session: Session, no_animations: bool) -> Self {
+        let audio = Audio::new(session.volume(), session.muted());
         Self {
             session,
             quit: false,
             now: Duration::ZERO,
             effects: Effects::new(),
             no_animations,
+            audio,
+            color_mode: ColorMode::default(),
         }
     }
 
@@ -53,6 +60,18 @@ impl App {
 
     pub const fn now(&self) -> Duration {
         self.now
+    }
+
+    pub fn audio_unavailable(&self) -> bool {
+        self.audio.unavailable()
+    }
+
+    pub const fn color_mode(&self) -> ColorMode {
+        self.color_mode
+    }
+
+    pub fn set_color_mode(&mut self, mode: ColorMode) {
+        self.color_mode = mode;
     }
 
     pub fn last_note_visible(&self) -> Option<MidiNote> {
@@ -82,6 +101,7 @@ impl App {
         if self.session.sustain() == SustainMode::Off && self.session.keyup() == KeyUpMode::Auto {
             let expired = self.session.voices_mut().expire(now, AUTO_RELEASE);
             for note in expired {
+                self.audio.note_off(note.midi());
                 self.effects.release(note, now);
             }
         }
@@ -99,23 +119,34 @@ impl App {
                 }
             }
             Action::ToggleLanguage => self.session.toggle_language(),
-            Action::ToggleMute => self.session.toggle_mute(),
+            Action::ToggleMute => {
+                self.session.toggle_mute();
+                self.audio.set_muted(self.session.muted());
+            }
             Action::ToggleHelp => self.session.toggle_help(),
             Action::NoteOff(note) => self.note_off(note),
             Action::SustainRelease => self.sustain_release(),
             _ if self.session.help_open() => {}
             Action::OctaveDown => {
                 if self.session.shift_octave(-1) {
+                    self.audio.release_all();
                     self.effects.reset();
                 }
             }
             Action::OctaveUp => {
                 if self.session.shift_octave(1) {
+                    self.audio.release_all();
                     self.effects.reset();
                 }
             }
-            Action::VolumeDown => self.session.adjust_volume(-VOLUME_STEP),
-            Action::VolumeUp => self.session.adjust_volume(VOLUME_STEP),
+            Action::VolumeDown => {
+                self.session.adjust_volume(-VOLUME_STEP);
+                self.audio.set_volume(self.session.volume());
+            }
+            Action::VolumeUp => {
+                self.session.adjust_volume(VOLUME_STEP);
+                self.audio.set_volume(self.session.volume());
+            }
             Action::SustainPress => self.sustain_press(),
             Action::NoteOn(note) => self.note_on(note),
             Action::Tick => {}
@@ -124,7 +155,12 @@ impl App {
 
     pub fn release_all(&mut self) {
         self.session.release_all(self.now);
+        self.audio.release_all();
         self.effects.release_all(self.now);
+    }
+
+    pub fn shutdown(&mut self) {
+        self.audio.shutdown();
     }
 
     fn note_on(&mut self, note: MidiNote) {
@@ -133,6 +169,7 @@ impl App {
         {
             self.effects.release(previous, self.now);
         }
+        self.audio.note_on(note.midi(), 1.0);
         self.effects.press(note, self.now);
     }
 
@@ -144,6 +181,7 @@ impl App {
             return;
         }
         if self.session.voices_mut().note_off(note, self.now).is_some() {
+            self.audio.note_off(note.midi());
             self.effects.release(note, self.now);
         }
     }
@@ -154,6 +192,7 @@ impl App {
                 self.session.toggle_latch();
                 if self.session.sustain() == SustainMode::Off {
                     self.session.release_all(self.now);
+                    self.audio.release_all();
                     self.effects.release_all(self.now);
                 }
             }
@@ -165,6 +204,7 @@ impl App {
         if self.session.keyup() == KeyUpMode::Real && self.session.sustain() == SustainMode::On {
             let released = self.session.release_unheld(self.now);
             for note in released {
+                self.audio.note_off(note.midi());
                 self.effects.release(note, self.now);
             }
             self.session.set_sustain(SustainMode::Off);
