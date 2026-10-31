@@ -84,6 +84,10 @@ pub struct Cli {
     #[arg(long)]
     pub no_audio: bool,
 
+    /// ALSA PCM device; `auto` tries default and hardware fallbacks.
+    #[arg(long, value_name = "NAME", default_value = "default")]
+    pub audio_device: String,
+
     /// Render a deterministic PNG and exit without using fb, tty or audio.
     #[arg(long, value_name = "PATH")]
     pub capture_frame: Option<PathBuf>,
@@ -133,6 +137,7 @@ mod tests {
         assert_eq!(cli.color, ColorMode::Auto);
         assert!(!cli.no_animations);
         assert!(!cli.no_audio);
+        assert_eq!(cli.audio_device, "default");
         assert_eq!(cli.capture_frame, None);
     }
 
@@ -155,6 +160,8 @@ mod tests {
             "256",
             "--no-animations",
             "--no-audio",
+            "--audio-device",
+            "plughw:2,0",
             "--capture-frame",
             "/tmp/frame.png",
         ])
@@ -168,6 +175,7 @@ mod tests {
         assert_eq!(cli.color, ColorMode::Color256);
         assert!(cli.no_animations);
         assert!(cli.no_audio);
+        assert_eq!(cli.audio_device, "plughw:2,0");
         assert_eq!(cli.capture_frame, Some(PathBuf::from("/tmp/frame.png")));
     }
 

@@ -13,6 +13,8 @@ pub struct Audio {
     muted: bool,
     state: Arc<AtomicU8>,
     #[cfg(feature = "audio")]
+    device: String,
+    #[cfg(feature = "audio")]
     engine: Option<Engine>,
 }
 
@@ -29,10 +31,18 @@ impl std::fmt::Debug for Audio {
 
 impl Audio {
     pub fn new(volume: f32, muted: bool) -> Self {
+        Self::new_with_device(volume, muted, "default")
+    }
+
+    pub fn new_with_device(volume: f32, muted: bool, device: impl Into<String>) -> Self {
+        #[cfg(not(feature = "audio"))]
+        let _ = device;
         Self {
             volume: volume.clamp(0.0, 1.0),
             muted,
             state: Arc::new(AtomicU8::new(STATE_STARTING)),
+            #[cfg(feature = "audio")]
+            device: device.into(),
             #[cfg(feature = "audio")]
             engine: None,
         }
@@ -107,9 +117,10 @@ impl Audio {
         let state = Arc::clone(&self.state);
         let volume = self.volume;
         let muted = self.muted;
+        let device = self.device.clone();
         match std::thread::Builder::new()
             .name("piano-audio".to_string())
-            .spawn(move || run(receiver, state, volume, muted))
+            .spawn(move || run(receiver, state, volume, muted, device))
         {
             Ok(handle) => {
                 self.engine = Some(Engine {
@@ -165,15 +176,17 @@ fn run(
     state: Arc<AtomicU8>,
     volume: f32,
     muted: bool,
+    device_name: String,
 ) {
     use synth::Synth;
 
     const BUFFER_FRAMES: usize = 1024;
     const SHUTDOWN_BUFFERS: usize = 6;
 
-    let mut device = match crate::platform::alsa::Device::open("default") {
+    let mut device = match crate::platform::alsa::open_device(&device_name) {
         Ok(device) => device,
-        Err(_) => {
+        Err(error) => {
+            crate::platform::alsa::debug(&format!("áudio indisponível: {error}"));
             state.store(STATE_UNAVAILABLE, Ordering::Relaxed);
             return;
         }
@@ -212,6 +225,7 @@ fn run(
 
         synth.render(&mut buffer);
         if device.write(&buffer).is_err() {
+            crate::platform::alsa::debug("falha de escrita no PCM; áudio desativado");
             state.store(STATE_UNAVAILABLE, Ordering::Relaxed);
             break;
         }

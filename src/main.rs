@@ -2,9 +2,11 @@ use std::process::ExitCode;
 
 use clap::Parser;
 use piano_duas_oitavas::app::App;
+use piano_duas_oitavas::capture;
 use piano_duas_oitavas::cli::{Backend, Cli};
 use piano_duas_oitavas::error::AppError;
-use piano_duas_oitavas::render::tui;
+use piano_duas_oitavas::platform;
+use piano_duas_oitavas::render::{fb, tui};
 use piano_duas_oitavas::state::Session;
 use piano_duas_oitavas::theme::ColorMode;
 
@@ -20,17 +22,18 @@ fn main() -> ExitCode {
 }
 
 fn run(cli: Cli) -> Result<(), AppError> {
-    if cli.capture_frame.is_some() {
-        return Err(AppError::NotImplemented("--capture-frame (Fases 4/5)"));
-    }
-
+    platform::prepare_audio_environment();
     let session = Session::new(cli.octave, cli.volume, cli.lang.into(), cli.no_audio)
         .ok_or(AppError::InvalidOptions("oitava ou volume fora da faixa"))?;
-    let mut app = App::with_options(session, cli.no_animations);
+    let mut app = App::with_options_and_audio(session, cli.no_animations, cli.audio_device.clone());
     app.set_color_mode(ColorMode::resolve_from_env(cli.color));
+
+    if let Some(path) = cli.capture_frame {
+        return capture::write_png(&app, &path);
+    }
 
     match cli.backend {
         Backend::Auto | Backend::Tui => tui::run(app),
-        Backend::Fb => Err(AppError::BackendUnavailable("--backend fb chega na Fase 6")),
+        Backend::Fb => fb::run(app, cli.fb_device),
     }
 }

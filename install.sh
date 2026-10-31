@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP="piano-duas-oitavas"
 DISPLAY_NAME="Piano Duas Oitavas"
-VERSION="0.1.0"
+VERSION="0.2.0"
 PKG="${APP}-${VERSION}-x86_64-unknown-linux-gnu"
 PREFIX="${PREFIX:-/usr/local}"
 SKIP_GROUP="${SKIP_GROUP:-0}"
@@ -32,7 +32,12 @@ EOF
 }
 
 cleanup() {
-    [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ] && rm -rf "$TMP_DIR"
+    local status=$?
+    trap - EXIT
+    if [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ]; then
+        rm -rf "$TMP_DIR"
+    fi
+    exit "$status"
 }
 trap cleanup EXIT
 

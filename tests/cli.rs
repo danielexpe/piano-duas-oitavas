@@ -23,6 +23,8 @@ fn help_and_version_succeed() {
     assert!(help.contains("--octave"));
     assert!(help.contains("--volume"));
     assert!(help.contains("--backend"));
+    assert!(help.contains("--fb-device"));
+    assert!(help.contains("--capture-frame"));
 
     let version = run(&["--version"]);
     assert_eq!(code(&version), 0);
@@ -39,17 +41,28 @@ fn invalid_cli_values_exit_with_code_two() {
 }
 
 #[test]
-fn fb_backend_is_unavailable_until_phase_six() {
-    let output = run(&["--backend", "fb"]);
+fn fb_backend_reports_a_missing_device() {
+    let output = run(&["--backend", "fb", "--fb-device", "/dev/does-not-exist"]);
     assert_eq!(code(&output), 3);
     assert!(String::from_utf8_lossy(&output.stderr).contains("backend indisponível"));
 }
 
 #[test]
-fn capture_frame_is_not_implemented_yet() {
-    let output = run(&["--capture-frame", "/tmp/piano-frame.png"]);
-    assert_eq!(code(&output), 1);
-    assert!(String::from_utf8_lossy(&output.stderr).contains("--capture-frame"));
+fn capture_frame_writes_a_png() {
+    let path = std::env::temp_dir().join(format!(
+        "piano-frame-{}-{}.png",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_nanos())
+            .unwrap_or(0)
+    ));
+    let output = run(&["--capture-frame", &path.display().to_string()]);
+    assert_eq!(code(&output), 0);
+    let bytes = std::fs::read(&path).expect("capture file");
+    let _ = std::fs::remove_file(&path);
+    assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n");
+    assert!(bytes.len() > 1000);
 }
 
 #[test]

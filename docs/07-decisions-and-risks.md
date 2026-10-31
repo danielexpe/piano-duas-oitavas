@@ -105,10 +105,11 @@
 
 - **Status:** aceita.
 - **Contexto:** console de referência 1920 × 1080/32 bpp, mas há telas menores.
-- **Decisão:** cena Wide em ≥ 1280 × 720; Compact abaixo; Minimal quando o
-  texto ficaria abaixo de 11 px. Suportar 32/24/16 bpp.
-- **Consequências:** validação real em VT, 24/16 bpp e resoluções menores fica
-  pendente na Fase 6.
+- **Decisão:** cena Wide em ≥ 1280 × 720; Compact em ≥ 1024 × 600; Minimal
+  abaixo disso. O canvas lógico é escalado com bilinear para até 96% do
+  dispositivo e centralizado; suportar 32/24/16 bpp.
+- **Consequências:** a implementação foi entregue na Fase 6; a validação real
+  em VT, 24/16 bpp e resoluções menores segue pendente.
 
 ### D-013 — `--seed` reservado, sem aleatoriedade musical
 
@@ -118,6 +119,24 @@
   decisão musical ou visual depende dele no v1.
 - **Consequências:** capturas são determinísticas sem seed; o flag não muda o
   comportamento.
+
+### D-014 — Seleção e fallback de dispositivo ALSA
+
+- **Status:** aceita.
+- **Contexto:** no console/VT o PCM `default` pode falhar porque o shell não
+  herdou `XDG_RUNTIME_DIR`/DBus do serviço PipeWire/PulseAudio, ou porque o
+  dispositivo preferido está ocupado (o headset USB pode retornar `EBUSY`
+  quando o servidor de áudio o detém).
+- **Decisão:** preparar as variáveis de sessão ausentes a partir de
+  `/run/user/<uid>`; tentar `default`, `pipewire`, `pulse` e, por último,
+  dispositivos de hardware, com preferência por analógico/USB sobre HDMI.
+  Expor `--audio-device <NAME>` (padrão `default`) e `auto`; um nome explícito
+  não sofre fallback, exceto `hw:` → `plughw:`. `PIANO_AUDIO_DEBUG=1` loga a
+  escolha e as falhas no stderr.
+- **Consequências:** o áudio funciona no VT mesmo sem ambiente gráfico; se o
+  PipeWire não estiver acessível, o som pode sair pelo analógico/HDMI. A
+  escolha automática pode não corresponder ao dispositivo que o usuário
+  ouve, por isso o seletor explícito é documentado.
 
 ## Premissas
 

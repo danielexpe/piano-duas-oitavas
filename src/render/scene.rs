@@ -7,7 +7,7 @@ pub const KEYBOARD_ROWS: [&str; 4] = ["1234567890", "QWERTYUIOP", "ASDFGHJKL", "
 pub const BASE_OCTAVE_KEYCAPS: [char; 12] =
     ['Z', 'S', 'X', 'D', 'C', 'V', 'G', 'B', 'H', 'N', 'J', 'M'];
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Hud {
     pub octave: String,
     pub volume: String,
@@ -20,7 +20,7 @@ pub struct Hud {
     pub audio_unavailable: bool,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NoteView {
     pub note: MidiNote,
     pub key: char,
@@ -31,20 +31,20 @@ pub struct NoteView {
     pub glow: f32,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Keycap {
     pub label: char,
     pub note: Option<MidiNote>,
     pub held: bool,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FloatingNote {
     pub note: MidiNote,
     pub progress: f32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Scene {
     pub language: Language,
     pub hud: Hud,

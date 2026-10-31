@@ -8,7 +8,7 @@
 | 3 — Lógica rica | vozes, sustain, auto-release, key-up | invariantes e fallback testados | concluída em 2026-10-31; captura determinística adiada para as Fases 4/5 |
 | 4 — Arte/som/i18n | fonte, áudio, acessibilidade | áudio + fonte + i18n validados | concluída em 2026-10-31; áudio sem validação em hardware |
 | 5 — Release desktop | licenças, docs, medições, pacote | release validado | concluída em 2026-10-31; validação manual pendente |
-| 6 — Framebuffer | fbdev, texto, scaling, sinais | console validado + pacote | pendente |
+| 6 — Framebuffer | fbdev, texto, scaling, sinais | console validado + pacote | implementada em 2026-10-31; validação manual em VT pendente |
 | 7 — Backlog | evdev, persistência, gravação, MIDI, temas | priorizado pelo usuário | pendente |
 
 ## Checklist por fase
@@ -58,15 +58,15 @@
 - [x] Key-up real (protocolo aprimorado) e fallback latch
 - [x] Invariantes: sem notas presas, sem vozes duplicadas, sem estouro
 - [x] Testes de tempo com relógio injetado
-- [ ] `--seed` sem efeito musical; captura determinística
-      (`--seed` continua aceito e sem efeito musical; a captura PNG chega nas
-      Fases 4/5)
+- [x] `--seed` sem efeito musical; captura determinística
+      (`--seed` continua aceito e sem efeito musical; a captura PNG foi
+      entregue na Fase 6)
 
 > Fase 3 concluída em 2026-10-31 para o critério de saída (invariantes e
 > fallback testados). O ciclo de vozes agora tem release de 180 ms, release de
 > sustain de 450 ms, fade de roubo de 5 ms e auto-release apenas no modo
 > `auto`; no modo `real`, o sustain adia o release até soltar Espaço. A
-> captura determinística segue pendente por depender do pipeline de assets.
+> captura determinística (`--capture-frame`) foi implementada na Fase 6.
 
 ### Fase 4 — Arte, som, i18n e acessibilidade
 
@@ -99,18 +99,32 @@
 > `xtask notices --check`). Medições locais: startup ~1,2 ms, frame TUI
 > ~0,23 ms, RSS ~3,5 MB, binário ~1,5 MB. Pacote e instalação com prefixo
 > temporário testados. Validação manual de áudio, terminais reais e fb
-> continua pendente; fb e captura PNG pertencem à Fase 6.
+> continua pendente; fb e captura PNG foram implementados na Fase 6.
 
 ### Fase 6 — Framebuffer
 
-- [ ] fbdev aberto/validado (32/24/16 bpp)
-- [ ] `KD_GRAPHICS` + `FBIOBLANK(FB_BLANK_UNBLANK)`
-- [ ] Pan/`yoffset` e fallback
-- [ ] Texto, scaling e layout Compact
-- [ ] Entrada raw de `/dev/tty` com `Esc` isolado
-- [ ] Sinais e panic hook
+- [x] fbdev aberto/validado (32/24/16 bpp) — implementado e testado sem hardware
+- [x] `KD_GRAPHICS` + `FBIOBLANK(FB_BLANK_UNBLANK)`
+- [x] Pan/`yoffset` e fallback
+- [x] Texto, scaling e layout Compact
+- [x] Entrada raw de `/dev/tty` com `Esc` isolado
+- [x] Sinais e panic hook
+- [x] Captura PNG determinística em 1344 × 756
+- [x] Áudio no VT: preparo de ambiente, fallback de dispositivo e `--audio-device`
 - [ ] Validação em VT real, console blanked e 1080p/32 bpp
+- [ ] Validação em 24/16 bpp no hardware
 - [ ] `testes_debug.sh` executado no VT e anexado
+
+> Fase 6 implementada em 2026-10-31. O backend fbdev, o renderer vetorial com
+> Inter embutida, o scaling com bilinear, os breakpoints Wide/Compact/Minimal,
+> a leitura raw de `/dev/tty`, as guardas de console e a captura PNG foram
+> cobertos por testes sem hardware. Frame ativo medido em ~17 ms a
+> 1920 × 1080 (alvo ≤16 ms) e o loop não redesenha quando a cena não muda. O
+> áudio no VT ganhou preparo de `XDG_RUNTIME_DIR`/DBus e fallback de dispositivo
+> (`--audio-device`), com preferência por analógico/USB sobre HDMI. O fluxo
+> principal no VT real (interface e áudio) foi aprovado pelo usuário
+> em 2026-10-31. A validação de 24/16 bpp, console previamente blanked, pan
+> real, key-up real e a matriz completa de `docs/05` segue pendente.
 
 ### Fase 7 — Backlog
 

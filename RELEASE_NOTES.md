@@ -1,55 +1,66 @@
-# Piano Duas Oitavas 0.1.0
+# Piano Duas Oitavas 0.2.0
 
-Pré-release desktop (TUI) do Piano Duas Oitavas. O backend framebuffer e a
-captura PNG entram na Fase 6; esta versão valida o fluxo de terminal, o áudio
-sintetizado e o empacotamento.
+Segunda release, com o backend framebuffer para console Linux, captura PNG
+determinística e áudio ALSA mais robusto no VT.
 
 ## Destaques
 
-- Piano de duas oitavas (24 notas) com teclas brancas e pretas.
-- Mapeamento ABNT2 visível no piano e em uma representação do teclado físico.
-- Efeitos visuais sincronizados nas duas representações.
-- Síntese de piano polifônica (8 vozes) em runtime, com feature `audio`,
-  inicialização lazy, mute, volume e shutdown com fade.
-- Sustain, mudança de oitava, volume, mudo, ajuda e i18n pt-BR/en.
-- Fonte Inter 4.1 embutida (OFL 1.1), verificada por manifesto e hash.
-- Acessibilidade: `NO_COLOR`, variantes truecolor/256/16/mono, contraste
-  mínimo e estados com marcadores além de cor.
-- TUI offline, sem rede em runtime e sem assets externos.
+- Backend fbdev (`--backend fb`): `/dev/fb0` em 32/24/16 bpp, `KD_GRAPHICS`,
+  `FBIOBLANK`, `yoffset` real, double buffer/pan com fallback, scaling
+  bilinear e layout Wide/Compact/Minimal.
+- Texto no framebuffer com a fonte Inter 4.1 embutida (`fontdue`), piano e
+  teclado físico vetoriais (`tiny-skia`).
+- Entrada raw de `/dev/tty` com setas, F1–F3, `Esc` isolado e `Ctrl+C`.
+- Restauração de `KD_TEXT`, cursor e terminal em saída, erro, pânico,
+  SIGINT/SIGTERM/SIGHUP.
+- Captura PNG determinística em 1344 × 756 com `--capture-frame`.
+- Áudio: preparo de `XDG_RUNTIME_DIR`/PipeWire/DBus no VT, seleção com
+  `--audio-device`, fallback `default` → `pipewire`/`pulse` → hardware
+  (analógico/USB antes de HDMI), recuperação de xrun/short write e diagnóstico
+  com `PIANO_AUDIO_DEBUG=1`.
+- TUI e recursos anteriores preservados: 24 notas, efeitos, sustain, oitavas,
+  volume, mudo, ajuda, i18n pt-BR/en, acessibilidade e áudio sintetizado.
 
 ## Validado
 
 - Portões automatizados verdes com e sem a feature `audio`.
-- 120 testes unitários + 5 CLI + 2 PTY + 15 snapshots.
-- `cargo xtask assets --check` e `cargo xtask notices --check`.
-- Medições locais: startup até a primeira tela ~1,2 ms; frame TUI ~0,23 ms
-  ativo/ocioso; RSS ~3,5 MB; binário release ~1,5 MB.
-- Pacote `tar.gz` + `.sha256`; smoke em `/tmp` sem a pasta `assets/`.
-- Instalação testada com prefixo temporário e `--skip-group`.
+- 150 testes unitários + 5 CLI + 2 PTY + 15 snapshots com `audio`; 144
+  unitários sem `audio`; 2 benchmarks ignorados.
+- `cargo fmt`, `clippy -D warnings` (com/sem features), `xtask assets --check`,
+  `xtask notices --check` e builds release.
+- Capturas visuais em 1344 × 756 e 1920 × 1080, incluindo mono e inglês.
+- Frame fb ativo ~17 ms em 1920 × 1080; o loop não redesenha quando a cena
+  está estável.
+- Fluxo principal no VT real (interface e áudio) aprovado pelo usuário após a
+  correção de áudio.
+- Pacote `tar.gz` + `.sha256`; smoke em `/tmp` sem a pasta `assets/`;
+  instalação testada com prefixo temporário e `--skip-group`.
 
 ## Pendente de validação manual
 
-- Áudio audível em dispositivo ALSA real (com device, ausente e ocupado).
-- TUI em xterm, foot, kitty, alacritty e console Linux; key-up real.
-- Backend framebuffer, fonte no fb, 24/16 bpp e VT real (Fase 6).
-- Captura determinística PNG (Fase 6).
+- 24/16 bpp em hardware real.
+- Console previamente blanked/DPMS off e retomada após blank por inatividade.
+- Pan real em driver com `ypanstep > 0` (o alvo observado anuncia `pan: 0,0`).
+- Key-up real por terminal e a matriz completa de `docs/05`.
+- Áudio em headset e analógico, com dispositivo ocupado e ausente.
+- Telas menores (Compact/Minimal) em hardware real.
 
 ## Limitações
 
 - `--backend auto` usa TUI; o framebuffer é sempre explícito.
 - Sem DRM/KMS nesta versão.
-- Key-up real depende do terminal; sem ele, auto-release de 750 ms e sustain
-  latch.
+- Key-up real depende do terminal; no fbdev, o fallback usa auto-release de
+  750 ms e sustain latch.
 - Sem persistência de preferências, mouse, MIDI, gravação ou metrônomo.
 - Sem vsync: tearing leve é aceitável.
-- `lru` 0.12 foi eliminado ao atualizar `ratatui` para 0.30.2; o alerta
-  Dependabot low correspondente não se aplica mais a esta árvore.
+- O fallback automático de áudio pode escolher o analógico quando o PipeWire
+  não estiver acessível; use `--audio-device` para forçar um PCM.
 
 ## Instalação
 
 ```bash
-tar -xzf piano-duas-oitavas-0.1.0-x86_64-unknown-linux-gnu.tar.gz
-cd piano-duas-oitavas-0.1.0-x86_64-unknown-linux-gnu
+tar -xzf piano-duas-oitavas-0.2.0-x86_64-unknown-linux-gnu.tar.gz
+cd piano-duas-oitavas-0.2.0-x86_64-unknown-linux-gnu
 ./install.sh --prefix "$HOME/.local"
 ```
 

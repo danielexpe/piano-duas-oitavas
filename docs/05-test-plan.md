@@ -3,8 +3,9 @@
 > Congelado na Fase 0. Atualizado na Fase 1 com os portões automatizados e o
 > smoke em PTY. Atualizado na Fase 2 com snapshots de TUI, efeitos, breakpoints
 > e teste PTY de restauração. Atualizado na Fase 3 com o ciclo de vozes,
-> key-up real, invariantes e testes de tempo com relógio injetado; nenhuma
-> validação em terminal/VT real foi executada ainda.
+> key-up real, invariantes e testes de tempo com relógio injetado. Atualizado
+> na Fase 6 com os testes sem hardware do backend fbdev e da captura PNG;
+> nenhuma validação em VT real foi executada ainda.
 
 ## 1. Pirâmide
 
@@ -86,6 +87,9 @@ protocolo aprimorado é respondido e `Key-up: auto` com `TERM=linux`; se
 - [ ] Áudio: dispositivo ALSA presente, ausente e ocupado.
 - [ ] Sem ALSA (build `--no-default-features`) e com `--no-audio`.
 
+> Em 2026-10-31 o usuário aprovou o fluxo principal no VT real (interface e
+> áudio). Os itens da matriz acima continuam pendentes até validação explícita.
+
 **Não declare validado o que não foi executado.**
 
 ## 5. Validação registrada
@@ -97,3 +101,6 @@ protocolo aprimorado é respondido e `Key-up: auto` com `TERM=linux`; se
 | 2026-10-31 | Linux, testes unitários e sequência determinística | Fase 3: release de 180/450 ms, fade de roubo de 5 ms, auto-release só no modo `auto`, sustain real adiando key-up, key-up processado com ajuda aberta, 20 mil operações invariantes sem voz duplicada/estouro; 97 unitários + integração; portões verdes com/sem `audio` | Key-up real por terminal e captura determinística (Fases 4/5) |
 | 2026-10-31 | Linux, testes de síntese, xtask e snapshots | Fase 4: fonte Inter 4.1 vendorizada e hash verificado; 120 unitários + 5 CLI + 2 PTY + 15 snapshots; síntese aditiva sem NaN/pico ≤ 1, mute/fade, roubo limitado, lazy/shutdown; `NO_COLOR`/mono e contraste; cobertura de glifos; portões com/sem `audio` | Áudio audível em ALSA real, fonte no fb e matriz manual de terminais/VT seguem pendentes |
 | 2026-10-31 | Linux, release TUI, PTY e prefixo temporário | Fase 5: portões com/sem `audio`; `xtask notices --check` (140 dependências) e `assets --check`; startup ~1,2 ms, frame TUI ~0,23 ms, RSS ~3,5 MB, binário ~1,5 MB; pacote `tar.gz` + `.sha256`; smoke em `/tmp` sem `assets/`; `install.sh --prefix /tmp/... --skip-group` | Áudio audível, terminais reais, key-up real, fb/VT, 24/16 bpp e captura PNG pendentes |
+| 2026-10-31 | Linux, Wayland, fb0 `amdgpu` 1920×1080/32 bpp; testes sem hardware | Fase 6: ABI 160/80, formatos 32/24/16 bpp, R/G/B por bitfield, pan/fallback, geometria/`yoffset`, parser raw de `/dev/tty` (setas, F1–F3, `Esc` isolado, `Ctrl+C`), layout Wide/Compact/Minimal, texto com Inter, PNG determinístico 1344×756, portões e builds release; frame ativo fb ~17 ms em 1920×1080 | VT real, `KD_GRAPHICS`/blank, 1080p em hardware, 24/16 bpp, ypan real, key-up real e matriz manual de áudio/terminais |
+| 2026-10-31 | Linux, sessão Wayland e ambiente com `XDG_RUNTIME_DIR`/DBus removidos para simular VT | Áudio: `default`/PipeWire restaurado pelo preparo de ambiente; sem ele, fallback para `sysdefault:CARD=Generic_1`; candidatos ordenados com HDMI por último; escrita com recuperação de xrun e short writes | Reteste audível no VT real (headset e analógico), dispositivo ocupado, `--audio-device` explícito e `--no-audio` |
+| 2026-10-31 | VT real do usuário (feedback) e pacote 0.2.0 | Fluxo principal no VT (interface e áudio) aprovado pelo usuário; pacote `tar.gz` 1,1 MB + SHA-256, smoke em `/tmp`, captura PNG, erro fb com código 3, instalação em prefixo temporário a partir do tarball e do diretório extraído | 24/16 bpp, console blanked, pan real, key-up real, áudio com device ocupado/ausente e matriz completa |

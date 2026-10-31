@@ -7,9 +7,9 @@ Aplicação Rust para console Linux com TUI (`ratatui` + `crossterm`) e backend
 framebuffer fbdev (`/dev/fb0`, Fase 6). Roda offline, sem rede em runtime; a fonte Inter é embutida no binário e o
 piano é desenhado vetorialmente.
 
-> **Estado:** Fase 5 concluída (pacote desktop TUI com fonte embutida e áudio
-> sintetizado). O backend framebuffer e a captura PNG ainda não foram
-> implementados; este README descreve o produto alvo.
+> **Estado:** Fases 0–5 concluídas e Fase 6 implementada (backend fbdev,
+> texto vetorial, scaling, entrada raw e captura PNG determinística). A
+> validação manual em VT real, console blanked e 24/16 bpp ainda está pendente.
 > Especificação: `docs/01`–`08`. Memória operacional: `AGENTS.md`.
 > Arquitetura: `framework.md`.
 
@@ -39,6 +39,7 @@ cargo build --release
 ./target/release/piano-duas-oitavas --backend fb     # console via framebuffer
 ./target/release/piano-duas-oitavas --lang en --octave 4
 ./target/release/piano-duas-oitavas --no-audio
+./target/release/piano-duas-oitavas --capture-frame /tmp/piano.png
 ```
 
 Opções principais:
@@ -52,9 +53,45 @@ Opções principais:
 --seed <u64>                reservado; sem aleatoriedade no v1
 --color <auto|truecolor|256|16|never>
 --no-animations
---no-audio
+--no-audio                  inicia mudo
+--audio-device <NAME>       PCM ALSA (padrão: default; auto tenta fallbacks)
 --capture-frame <PATH>      PNG determinístico e sai
 ```
+
+## Framebuffer e captura
+
+O backend `fb` é sempre explícito (`--backend fb`) e exige um VT de texto
+local com `/dev/fb0` acessível (grupo `video`). Ele entra em `KD_GRAPHICS`,
+desbloqueia o console com `FBIOBLANK`, usa o `yoffset` real, tenta double
+buffer/pan quando o driver oferece e cai para o buffer visível se o pan falhar.
+Sinais, pânico e saída normal restauram `KD_TEXT` e o cursor. Em X/Wayland/SSH o
+app recusa com código 3 e uma mensagem acionável.
+
+`--capture-frame` renderiza a cena lógica Wide em 1344 × 756 e grava um PNG
+determinístico sem abrir VT, framebuffer ou áudio. É útil para revisão visual e
+QA.
+
+## Áudio no console/VT
+
+O app abre o PCM `default` (normalmente PipeWire/PulseAudio). Se o shell do VT
+não tiver `XDG_RUNTIME_DIR`/DBus, o app preenche essas variáveis a partir de
+`/run/user/<uid>` antes de abrir o áudio. Se ainda assim `default` falhar
+(sessão de áudio ausente ou dispositivo ocupado), ele tenta `pipewire`,
+`pulse` e, por último, dispositivos de hardware, preferindo analógico/USB a
+HDMI.
+
+Para escolher ou forçar um dispositivo:
+
+```bash
+./target/release/piano-duas-oitavas --backend fb --audio-device auto
+./target/release/piano-duas-oitavas --backend fb --audio-device sysdefault:CARD=Generic_1
+./target/release/piano-duas-oitavas --backend fb --audio-device plughw:2,0
+```
+
+`--audio-device default` (padrão) usa o PCM padrão e só cai para alternativas
+se ele falhar; um nome explícito como `plughw:2,0` é usado sem fallback. Para
+diagnosticar, rode com `PIANO_AUDIO_DEBUG=1` e veja no stderr qual dispositivo
+foi escolhido e por que os outros falharam.
 
 ## Instalação
 
@@ -119,6 +156,14 @@ Snapshots de TUI: `UPDATE_SNAPSHOTS=1 cargo test --test tui_snapshots`
 regenera `tests/snapshots/`; revise o diff. O teste PTY usa `script(1)` e
 confirma a restauração do terminal, sendo pulado se `script` não existir.
 
+> **Atenção:** o último comando de build dos portões usa
+> `--no-default-features`, então `target/release/piano-duas-oitavas` fica
+> **sem áudio**. Antes de testar som, rode `cargo build --release` novamente.
+
+Testes sem hardware cobrem ABI das structs de fbdev, formatos 32/24/16 bpp,
+pan/fallback, geometria, parser de sequências, layout, texto e captura PNG. A
+matriz manual em VT real está em `docs/05`.
+
 ## Limitações
 
 - `--backend auto` usa TUI; o framebuffer é sempre explícito.
@@ -129,8 +174,8 @@ confirma a restauração do terminal, sendo pulado se `script` não existir.
 - O key-up varia por terminal; o HUD mostra o modo (`real` ou `auto`).
 - Sem vsync: tearing leve é aceitável.
 - Troca de VT durante a execução pode deixar resíduos; reinicie o app.
-- A validação em VT real, 24/16 bpp e telas menores está pendente até a
-  Fase 6.
+- O backend fb está implementado, mas a validação em VT real, 24/16 bpp e
+  telas menores segue pendente.
 
 ## Licença
 

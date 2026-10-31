@@ -26,7 +26,15 @@ impl App {
     }
 
     pub fn with_options(session: Session, no_animations: bool) -> Self {
-        let audio = Audio::new(session.volume(), session.muted());
+        Self::with_options_and_audio(session, no_animations, "default")
+    }
+
+    pub fn with_options_and_audio(
+        session: Session,
+        no_animations: bool,
+        audio_device: impl Into<String>,
+    ) -> Self {
+        let audio = Audio::new_with_device(session.volume(), session.muted(), audio_device);
         Self {
             session,
             quit: false,

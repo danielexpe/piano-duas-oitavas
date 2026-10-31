@@ -9,8 +9,8 @@
 - Sem rede em runtime; áudio via ALSA carregado dinamicamente.
 - Alvo de console: `/dev/fb0`, 1920 × 1080 a 32 bpp como referência,
   driver genérico (efifb, simpledrm, amdgpu, i915), VT de texto local.
-- Formatos de framebuffer suportados: 32, 24 e 16 bpp; validação em hardware
-  real fica pendente até a Fase 6.
+- Formatos de framebuffer suportados: 32, 24 e 16 bpp; implementados e
+  testados sem hardware na Fase 6, com validação em hardware real pendente.
 
 ## 2. Arquitetura em camadas
 
@@ -114,7 +114,9 @@ Action = NoteOn(MidiNote) | NoteOff(MidiNote) | SustainPress | SustainRelease
 ## 6. Renderização compartilhada
 
 - Canvas lógico: **1344 × 756** (70% de 1920 × 1080).
-- Fb: fundo ocupa a tela inteira; composição escalada e centralizada.
+- Fb: fundo ocupa a tela inteira; a cena lógica é escalada com bilinear para
+  até 96% do dispositivo e centralizada; caminho rápido quando a escala fica
+  próxima de 1.
 - TUI: breakpoints Wide / Compact / Minimal; mínimo 80 × 24.
 - `render/scene.rs` produz uma lista de teclas com:
   - nota MIDI, branca/preta, posição lógica;
@@ -159,12 +161,16 @@ piano-duas-oitavas [OPTIONS]
   --color <auto|truecolor|256|16|never>
   --no-animations
   --no-audio                  inicia mudo
+  --audio-device <NAME>       PCM ALSA; padrão: default; auto tenta fallbacks
   --capture-frame <PATH>      PNG determinístico e sai
   -h, --help
   -V, --version
 ```
 
 - `--backend auto` nunca escolhe fbdev.
+- `--audio-device default` usa o PCM padrão; se ele falhar, tenta
+  `pipewire`, `pulse` e hardware não-HDMI. Um nome explícito é usado sem
+  fallback; `auto` explicita o comportamento de busca.
 - `--capture-frame` não abre áudio, framebuffer nem terminal interativo.
 - `NO_COLOR` tem prioridade; `--color never` força monocromático.
 - Flags de imagem (`--image-protocol`, `--no-images`) não existem no v1: não
@@ -180,6 +186,15 @@ informam caminho, causa e ação.
   ALSA.
 - ALSA via `libloading`; biblioteca/dispositivo ausente = silêncio, sem erro
   fatal. Thread de áudio separada com canal limitado (64 mensagens).
+- No VT, o app preenche `XDG_RUNTIME_DIR`, `PIPEWIRE_RUNTIME_DIR`,
+  `DBUS_SESSION_BUS_ADDRESS` e `PULSE_SERVER` (somente se ausentes e se os
+  caminhos em `/run/user/<uid>` existirem) antes de abrir o PCM.
+- Seleção de dispositivo: `--audio-device` (padrão `default`). Se o PCM padrão
+  falhar, tenta `pipewire`, `pulse`, `sysdefault:CARD=...` e
+  `plughw:CARD=...`/`plughw:<card>,<dev>`, preferindo analógico/USB a HDMI.
+  Um dispositivo explícito não sofre fallback (exceto `hw:` → `plughw:`).
+- Escritas tratam short writes e recuperam xruns com `snd_pcm_recover` antes de
+  desativar o áudio. `PIANO_AUDIO_DEBUG=1` loga a escolha e as falhas no stderr.
 - Formato interno: mono `f32`, 48 kHz; ALSA converte para o dispositivo.
 - 8 vozes; onda aditiva com fundamental + 4 harmônicos, amplitudes
   `[1.0, 0.42, 0.22, 0.12, 0.07]` e leve inarmonicidade por harmônico;

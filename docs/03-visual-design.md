@@ -27,9 +27,11 @@
 | Compact | 90 × 26 a 109 × 29 | piano + teclado físico abreviado + HUD + rodapé curto |
 | Minimal | 80 × 24 a 89 × 25 | piano com rótulos de tecla + uma fileira compacta de keycaps + HUD mínimo |
 
-No fb, a cena Wide é usada quando a tela tem ≥ 1280 × 720; abaixo disso, a
-cena Compact é escalada. Se a escala deixaria o texto abaixo de 11 px, usar
-Minimal. O piano nunca é cortado; o teclado físico pode ser abreviado.
+No fb, a cena Wide é usada quando a tela tem ≥ 1280 × 720; Compact em
+≥ 1024 × 600; abaixo disso, Minimal. O canvas lógico (1344 × 756 em Wide) é
+escalado com bilinear para até 96% do dispositivo e centralizado; o fundo
+preenche a tela inteira. O caminho rápido é usado quando a escala fica próxima
+de 1. O piano nunca é cortado; o teclado físico pode ser abreviado.
 
 ### 2.1 Geometria lógica (Wide)
 
