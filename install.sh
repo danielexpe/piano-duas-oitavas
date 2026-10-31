@@ -150,7 +150,7 @@ echo "Instalando $DISPLAY_NAME $VERSION em $PREFIX..."
 run_install install -d "$PREFIX/bin" "$PREFIX/share/$APP"
 run_install install -m755 "$SOURCE_DIR/$APP" "$PREFIX/bin/$APP"
 
-for doc in README.md LICENSE LICENSE-ART THIRD_PARTY_NOTICES.md RELEASE_NOTES.md; do
+for doc in README.md LICENSE LICENSE-ART THIRD_PARTY_NOTICES.md RELEASE_NOTES.md CREDITS.md; do
     [ -f "$SOURCE_DIR/$doc" ] && run_install install -m644 "$SOURCE_DIR/$doc" "$PREFIX/share/$APP/$doc"
 done
 [ -f "$SOURCE_DIR/testes_debug.sh" ] && run_install install -m755 "$SOURCE_DIR/testes_debug.sh" "$PREFIX/share/$APP/testes_debug.sh"

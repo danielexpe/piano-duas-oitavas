@@ -501,6 +501,42 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "benchmark manual de frame da TUI"]
+    fn frame_budget_benchmark() {
+        use std::time::Instant;
+
+        let mut active_app = app();
+        active_app.handle(crate::input::Action::NoteOn(
+            crate::core::note::MidiNote::from_midi(48).unwrap(),
+        ));
+        let backend = TestBackend::new(120, 36);
+        let mut terminal = Terminal::new(backend).unwrap();
+
+        let start = Instant::now();
+        for _ in 0..200 {
+            terminal.draw(|frame| draw(frame, &active_app)).unwrap();
+        }
+        let active = start.elapsed().as_secs_f64() * 1000.0 / 200.0;
+
+        let mut idle = app();
+        idle.handle(crate::input::Action::NoteOff(
+            crate::core::note::MidiNote::from_midi(48).unwrap(),
+        ));
+        let backend = TestBackend::new(120, 36);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let start = Instant::now();
+        for _ in 0..200 {
+            terminal.draw(|frame| draw(frame, &idle)).unwrap();
+        }
+        let idle_ms = start.elapsed().as_secs_f64() * 1000.0 / 200.0;
+
+        println!("frame_tui_active_ms={active:.3}");
+        println!("frame_tui_idle_ms={idle_ms:.3}");
+        assert!(active < 16.0, "frame ativo acima de 16 ms: {active:.3}");
+        assert!(idle_ms < 33.0, "frame ocioso acima de 33 ms: {idle_ms:.3}");
+    }
+
+    #[test]
     fn help_modal_fits_small_screen() {
         let mut app = app();
         app.handle(crate::input::Action::ToggleHelp);

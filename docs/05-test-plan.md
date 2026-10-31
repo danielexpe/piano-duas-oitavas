@@ -49,6 +49,7 @@ cargo clippy --workspace --all-targets --no-default-features -- -D warnings
 cargo test
 cargo test --no-default-features
 cargo xtask assets --check
+cargo xtask notices --check
 cargo build --release
 cargo build --release --no-default-features
 ```
@@ -81,7 +82,7 @@ protocolo aprimorado é respondido e `Key-up: auto` com `TERM=linux`; se
 - [ ] Restauração: menu (não existe), `Esc`, `Ctrl+C`, SIGTERM, pânico.
 - [ ] VT real: `tty` = `/dev/ttyN`; `fb0/blank` chega a 0 sem `Ctrl+C`.
 - [ ] Console previamente blanked/DPMS off.
-- [ ] Instalador com `PREFIX=/tmp/... SKIP_GROUP=1`.
+- [x] Instalador com `PREFIX=/tmp/... SKIP_GROUP=1`.
 - [ ] Áudio: dispositivo ALSA presente, ausente e ocupado.
 - [ ] Sem ALSA (build `--no-default-features`) e com `--no-audio`.
 
@@ -95,3 +96,4 @@ protocolo aprimorado é respondido e `Key-up: auto` com `TERM=linux`; se
 | 2026-10-31 | Linux, `TestBackend` e PTY via `script` | Fase 2: 15 snapshots (80 × 24, 100 × 28, 120 × 36; pt/en; idle/pressed/glow/sustain/help/mudo/no-animations), teste PTY de desenho e restauração, protocolo aprimorado respondido (`Key-up: real`), portões completos com/sem `audio` | Revisão visual em terminais reais, key-up real por terminal, resize interativo, fb, áudio e matriz manual completa |
 | 2026-10-31 | Linux, testes unitários e sequência determinística | Fase 3: release de 180/450 ms, fade de roubo de 5 ms, auto-release só no modo `auto`, sustain real adiando key-up, key-up processado com ajuda aberta, 20 mil operações invariantes sem voz duplicada/estouro; 97 unitários + integração; portões verdes com/sem `audio` | Key-up real por terminal e captura determinística (Fases 4/5) |
 | 2026-10-31 | Linux, testes de síntese, xtask e snapshots | Fase 4: fonte Inter 4.1 vendorizada e hash verificado; 120 unitários + 5 CLI + 2 PTY + 15 snapshots; síntese aditiva sem NaN/pico ≤ 1, mute/fade, roubo limitado, lazy/shutdown; `NO_COLOR`/mono e contraste; cobertura de glifos; portões com/sem `audio` | Áudio audível em ALSA real, fonte no fb e matriz manual de terminais/VT seguem pendentes |
+| 2026-10-31 | Linux, release TUI, PTY e prefixo temporário | Fase 5: portões com/sem `audio`; `xtask notices --check` (140 dependências) e `assets --check`; startup ~1,2 ms, frame TUI ~0,23 ms, RSS ~3,5 MB, binário ~1,5 MB; pacote `tar.gz` + `.sha256`; smoke em `/tmp` sem `assets/`; `install.sh --prefix /tmp/... --skip-group` | Áudio audível, terminais reais, key-up real, fb/VT, 24/16 bpp e captura PNG pendentes |

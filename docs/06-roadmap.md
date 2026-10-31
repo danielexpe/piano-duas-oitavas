@@ -7,7 +7,7 @@
 | 2 — TUI funcional | piano completo, input, efeitos, ajuda | fluxo completo + snapshots | concluída em 2026-10-31; commit `c965c16` |
 | 3 — Lógica rica | vozes, sustain, auto-release, key-up | invariantes e fallback testados | concluída em 2026-10-31; captura determinística adiada para as Fases 4/5 |
 | 4 — Arte/som/i18n | fonte, áudio, acessibilidade | áudio + fonte + i18n validados | concluída em 2026-10-31; áudio sem validação em hardware |
-| 5 — Release desktop | licenças, docs, medições, pacote | release validado | pendente |
+| 5 — Release desktop | licenças, docs, medições, pacote | release validado | concluída em 2026-10-31; validação manual pendente |
 | 6 — Framebuffer | fbdev, texto, scaling, sinais | console validado + pacote | pendente |
 | 7 — Backlog | evdev, persistência, gravação, MIDI, temas | priorizado pelo usuário | pendente |
 
@@ -88,11 +88,18 @@
 
 ### Fase 5 — Release desktop
 
-- [ ] Portões verdes com e sem features
-- [ ] Licenças, `CREDITS`, `THIRD_PARTY_NOTICES` sem drift
-- [ ] Medições de startup, frame, RSS e tamanho
-- [ ] Pacote `tar.gz` + `.sha256`
-- [ ] Smoke em `/tmp` sem `assets/`
+- [x] Portões verdes com e sem features
+- [x] Licenças, `CREDITS`, `THIRD_PARTY_NOTICES` sem drift
+- [x] Medições de startup, frame, RSS e tamanho
+- [x] Pacote `tar.gz` + `.sha256`
+- [x] Smoke em `/tmp` sem `assets/`
+
+> Fase 5 concluída em 2026-10-31 para o pacote desktop TUI. O manifesto de
+> assets e a tabela de dependências têm portões (`xtask assets --check` e
+> `xtask notices --check`). Medições locais: startup ~1,2 ms, frame TUI
+> ~0,23 ms, RSS ~3,5 MB, binário ~1,5 MB. Pacote e instalação com prefixo
+> temporário testados. Validação manual de áudio, terminais reais e fb
+> continua pendente; fb e captura PNG pertencem à Fase 6.
 
 ### Fase 6 — Framebuffer
 

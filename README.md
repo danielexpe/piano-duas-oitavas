@@ -4,13 +4,12 @@ Piano de duas oitavas em TUI/fbdev com mapeamento do teclado alfanumérico,
 síntese polifônica e efeitos visuais.
 
 Aplicação Rust para console Linux com TUI (`ratatui` + `crossterm`) e backend
-framebuffer fbdev (`/dev/fb0`). Roda offline, sem rede em runtime; a fonte Inter é embutida no binário e o
+framebuffer fbdev (`/dev/fb0`, Fase 6). Roda offline, sem rede em runtime; a fonte Inter é embutida no binário e o
 piano é desenhado vetorialmente.
 
-> **Estado:** Fase 4 concluída (fonte Inter vendorizada, síntese ALSA
-> polifônica, áudio lazy, modo mono/`NO_COLOR`, catálogo e cobertura de
-> glifos). O framebuffer e o release ainda não foram implementados; este
-> README descreve o produto alvo.
+> **Estado:** Fase 5 concluída (pacote desktop TUI com fonte embutida e áudio
+> sintetizado). O backend framebuffer e a captura PNG ainda não foram
+> implementados; este README descreve o produto alvo.
 > Especificação: `docs/01`–`08`. Memória operacional: `AGENTS.md`.
 > Arquitetura: `framework.md`.
 
@@ -111,6 +110,7 @@ cargo clippy --workspace --all-targets --no-default-features -- -D warnings
 cargo test
 cargo test --no-default-features
 cargo xtask assets --check
+cargo xtask notices --check
 cargo build --release
 cargo build --release --no-default-features
 ```

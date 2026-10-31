@@ -5,16 +5,15 @@
 > Atualize-o ao final de cada tarefa relevante.
 >
 > **Última atualização:** 2026-10-31
-> **Status atual:** Fase 4 (arte, som, i18n e acessibilidade) concluída em
-> 2026-10-31. A fonte Inter 4.1 está vendorizada com OFL e hash; o áudio ALSA
-> é sintetizado, lazy e com shutdown com fade; acessibilidade cobre
-> `NO_COLOR`, 256/16/mono e contraste. O app é um repositório próprio,
-> independente do toolkit; o toolkit é apenas ferramenta de desenvolvimento e
-> não é dependência de runtime. Captura determinística e fbdev continuam
-> pendentes (Fases 5/6).
+> **Status atual:** Fase 5 (release desktop TUI) concluída em 2026-10-31 para
+> pacote, licenças, medições e smoke. O app é um repositório próprio,
+> independente do toolkit. A validação manual de áudio, terminais reais e
+> hardware continua pendente; fbdev e captura PNG pertencem à Fase 6.
 > **Branch:** main (repositório próprio)
 > **Último commit de código:** `4494fbc` (Fase 4)
-> **Alterações da Fase 4:** commitadas e enviadas em `4494fbc`
+> **Alterações da Fase 5:** não commitadas até pedido explícito
+> **Pacote desktop:** `dist/piano-duas-oitavas-0.1.0-x86_64-unknown-linux-gnu.tar.gz`
+> (SHA-256 `6b67350a7c866540ddc3f95de6542ceb8a915e4dadc58c11cea263aa39733d25`)
 > **Remote:** `origin` = `github.com/danielexpe/piano-duas-oitavas`
 
 ## 1. Retomada rápida
@@ -38,56 +37,56 @@
 | Fase 1 — Fundação | concluída em 2026-10-31 |
 | Fase 2 — TUI funcional | concluída em 2026-10-31; commit `c965c16` |
 | Fase 3 — Lógica rica | concluída em 2026-10-31; commit `f6274a5` |
-| Fase 4 — Arte/som/i18n | concluída em 2026-10-31; áudio sem validação audível em hardware |
+| Fase 4 — Arte/som/i18n | concluída em 2026-10-31; commit `4494fbc` |
+| Fase 5 — Release desktop | concluída em 2026-10-31 para o pacote TUI; validação manual pendente |
 | Especificações | `docs/01`–`08` preenchidos e congelados |
-| Código | domínio puro, sessão, efeitos, input, app, CLI, i18n, piano em células, TUI, assets embutidos, síntese aditiva, ALSA dinâmico, paleta mono/256/16 |
+| Código | TUI completa, domínio puro, assets embutidos, síntese aditiva, ALSA dinâmico, paleta mono/256/16 |
 | Testes | 120 unitários + 5 CLI + 2 PTY + 15 snapshots com `audio`; 119 unitários sem |
-| Fonte | Inter 4.1 vendorizada em `assets/fonts/`; OFL 1.1; hash no manifesto |
-| Assets | `assets/manifest.toml` + `cargo xtask assets --check` real |
-| Áudio | implementado: 8 vozes, 48 kHz, ALSA via `libloading`, thread, canal 64, lazy, mute/volume, shutdown 120 ms; sem device = silêncio |
-| Acessibilidade | `NO_COLOR`, `--color truecolor/256/16/never`, mono, contraste testado, estados com marcadores |
+| Dependências | `ratatui` 0.30.2 (remove `lru` 0.12 vulnerável); 140 dependências conferidas por `xtask notices --check` |
+| Áudio | implementado e testado sem hardware; validação audível pendente |
+| Assets | Inter 4.1 + OFL; `xtask assets --check` real |
+| Pacote | `dist/...tar.gz` (651 KB) + `.sha256`; binário 1,5 MB; smoke em `/tmp` sem assets |
+| Instalação | testada com `--prefix /tmp/... --skip-group`; documentos e licenças instalados |
+| Medições | startup ~1,2 ms; frame TUI ~0,23 ms; RSS ~3,5 MB |
 | Framebuffer | não iniciado; `--backend fb` retorna código 3 |
 | Captura PNG | não iniciada; `--capture-frame` retorna código 1 |
-| Release | não iniciado |
-| Validação manual | PTY (`script`) e testes sem hardware; terminais/VT reais e áudio audível ainda pendentes |
-| Git | repositório próprio; `origin` = `danielexpe/piano-duas-oitavas`; último commit de código `4494fbc` |
+| Validação manual | áudio audível, terminais reais, key-up real, fb/VT e 24/16 bpp pendentes |
+| Git | `origin` = `danielexpe/piano-duas-oitavas`; último commit de código `4494fbc` |
 
-### Ponto de retomada (handoff 2026-10-31, Fase 4)
+### Ponto de retomada (handoff 2026-10-31, Fase 5)
 
-- **Repositório do app:** este diretório é um repositório Git próprio
-  (`origin` = `github.com/danielexpe/piano-duas-oitavas`); o toolkit externo
-  não faz parte do app.
-- **Onde paramos:** Fase 4 concluída. A fonte Inter 4.1
-  (`assets/fonts/Inter-Regular.ttf`, SHA-256
-  `40d692fce188e4471e2b3cba937be967878f631ad3ebbbdcd587687c7ebe0c82`) e a
-  licença OFL foram vendorizadas com aprovação do usuário. `xtask assets
-  --check` valida manifesto, arquivo e licença. A síntese aditiva usa 8 vozes,
-  fundamental + 4 harmônicos, envelope existente, fade de roubo/mute de 5 ms e
-  limiter `tanh`; o backend ALSA é carregado dinamicamente em thread própria,
-  com inicialização lazy na primeira nota e shutdown com fade de 120 ms. A
-  paleta agora tem variantes truecolor/256/16/mono, `NO_COLOR` tem prioridade
-  e os estados usam marcadores além de cor.
-- **Estado do Git:** commit `4494fbc` (Fase 4) enviado para `origin/main`;
-  este registro de docs vem em commit separado.
-- **Validação já feita:** portões completos verdes (`fmt`, `clippy` com/sem
-  features, `test` com/sem features, `xtask assets --check`, builds release).
-  120 testes unitários + 5 CLI + 2 PTY + 15 snapshots (snapshots exigem a
-  feature `audio`); sem a feature são 119 unitários. Síntese testada sem hardware; hashes de asset verificados;
-  cobertura de glifos e contraste cobertos por teste.
-- **Pendente de validação:** ouvir áudio em ALSA real, key-up real em
-  terminais reais, TUI em xterm/foot/kitty/alacritty/console, resize
-  interativo, revisão visual das cores, fonte no fb (Fase 6), captura
-  determinística (Fase 5) e matriz manual de `docs/05`.
+- **Onde paramos:** Fase 5 concluída para o pacote desktop TUI. O pacote
+  `dist/piano-duas-oitavas-0.1.0-x86_64-unknown-linux-gnu.tar.gz` tem SHA-256
+  `6b67350a7c866540ddc3f95de6542ceb8a915e4dadc58c11cea263aa39733d25` e inclui
+  binário, README, licenças, créditos, notas, `install.sh`,
+  `testes_debug.sh` e `licenses/OFL-Inter.txt`. O smoke rodou em `/tmp` com o
+  binário copiado sozinho, sem `assets/`, e a instalação foi testada com
+  prefixo temporário.
+- **Dependências/licenças:** `THIRD_PARTY_NOTICES.md` agora lista as 140
+  dependências do `Cargo.lock` e é verificado por `cargo xtask notices
+  --check`. `ratatui` foi atualizado para 0.30.2, eliminando `lru` 0.12 do
+  alerta Dependabot low.
+- **Medições locais (TUI, release):** startup até a primeira tela ~1,2 ms;
+  frame ativo/ocioso ~0,23 ms em `TestBackend` 120 × 36; RSS ~3,5 MB; binário
+  ~1,5 MB; pacote ~651 KB. Frame em fb 1080p depende da Fase 6.
+- **Estado do Git:** último commit de código `4494fbc` (Fase 4). As alterações
+  da Fase 5 permanecem não commitadas até pedido explícito; `dist/` é
+  ignorado.
+- **Pendente de validação:** áudio audível em ALSA real (device presente,
+  ausente e ocupado), TUI em xterm/foot/kitty/alacritty/console, key-up real,
+  resize interativo, fb/VT, 24/16 bpp, captura PNG e matriz manual de
+  `docs/05`.
 - **Primeira ação ao voltar:** ler este arquivo, rodar
   `git status --short --branch`, conferir `docs/06-roadmap.md` e iniciar a
-  Fase 5 (release desktop).
+  Fase 6 (framebuffer).
 
 ### Próxima tarefa recomendada
 
-Iniciar a **Fase 5 — Release desktop**: conferir licenças/`CREDITS`/
-`THIRD_PARTY_NOTICES` sem drift, medir startup, frame, RSS e tamanho do
-binário, gerar pacote `tar.gz` + `.sha256` e fazer smoke em `/tmp` sem a pasta
-`assets/`. Não iniciar fbdev antes do pacote desktop estar validado.
+Iniciar a **Fase 6 — Framebuffer**: abrir e validar `/dev/fb0` (32/24/16 bpp),
+entrar em `KD_GRAPHICS`, desblanquear com `FBIOBLANK`, tratar pan/`yoffset`,
+renderizar texto com a Inter embutida, ler `/dev/tty` em raw mode e restaurar
+console em sinais/pânico. Antes, rodar a matriz manual pendente da Fase 5 no
+ambiente real.
 
 ## 3. Resumo do produto
 
@@ -177,6 +176,7 @@ cargo test --no-default-features
 cargo build --release
 cargo build --release --no-default-features
 cargo xtask assets --check
+cargo xtask notices --check
 ```
 
 Diagnóstico de console (executar no VT afetado):
@@ -223,6 +223,7 @@ claramente o que foi validado e o que permanece pendente.
 | 2026-10-31 | Extração do app para repositório próprio | `git init`, commit `9071c6d`, remoto público `danielexpe/piano-duas-oitavas`; toolkit deixou de rastrear a pasta | `.git/`, `AGENTS.md` |
 | 2026-10-31 | Fase 3: ciclo de vozes, key-up real, sustain adiado, invariantes e testes de tempo | 97 unitários; release/fade, auto-release só em `auto`, sequência determinística de 20 mil operações; portões completos verdes; commit `f6274a5` e push | `src/core/voice.rs`, `src/state/session.rs`, `src/app.rs`, `docs/05`, `docs/06`, `AGENTS.md` |
 | 2026-10-31 | Fase 4: fonte Inter, manifesto/xtask, síntese ALSA, acessibilidade e glifos | 120 unitários + 5 CLI + 2 PTY + 15 snapshots; áudio lazy/mute/volume/shutdown; `NO_COLOR`/mono/contraste; hash de asset verificado; sem validação audível em hardware | `assets/**`, `xtask/**`, `src/assets.rs`, `src/audio/**`, `src/platform/alsa.rs`, `src/theme.rs`, `src/render/**`, `src/app.rs`, `src/i18n`, `docs/04`–`07`, `README.md`, `THIRD_PARTY_NOTICES.md`, `CREDITS.md`, `AGENTS.md` |
+| 2026-10-31 | Fase 5: release desktop, dependências/licenças, medições, pacote e smoke | Pacote `tar.gz` (SHA-256 `6b67350a...39733d25`) + binário sem assets; `xtask notices --check` (140 deps); `ratatui` 0.30.2 remove `lru` vulnerável; startup ~1,2 ms, frame ~0,23 ms, RSS ~3,5 MB; instalação em prefixo temporário | `Cargo.toml`, `Cargo.lock`, `THIRD_PARTY_NOTICES.md`, `xtask/src/main.rs`, `install.sh`, `RELEASE_NOTES.md`, `README.md`, `docs/05`, `docs/06`, `AGENTS.md` |
 | 2026-10-31 | Commit e push da Fase 4 | Commit `4494fbc` (`feat: conclui Fase 4 com fonte, áudio e acessibilidade`) enviado para `origin/main`; GitHub reporta 1 alerta Dependabot low para triagem | `AGENTS.md` |
 
 ## 11. Fases
@@ -234,14 +235,14 @@ claramente o que foi validado e o que permanece pendente.
 | 2 — TUI funcional | concluída em 2026-10-31; commit `c965c16` | Fluxo completo + snapshots |
 | 3 — Lógica rica | concluída em 2026-10-31 | Invariantes e fallback de key-up |
 | 4 — Arte/som/i18n | concluída em 2026-10-31 | Fonte + áudio + acessibilidade |
-| 5 — Release desktop | pendente | Pacote validado |
+| 5 — Release desktop | concluída em 2026-10-31; validação manual pendente | Pacote e smoke validados |
 | 6 — Framebuffer | pendente | Console validado |
 | 7 — Backlog | pendente | Itens priorizados |
 
 ## 12. Notas para a próxima sessão
 
 - Handoff detalhado na seção 2 ("Ponto de retomada").
-- Comece pela Fase 5; não pule para fbdev.
+- Comece pela Fase 6; não pule a validação manual pendente da Fase 5.
 - Reaproveite `core::*`, `state::Session`, `state::Effects`, `input::Action`,
   `app::App`, `render::scene::Scene`, `render::piano::PianoBoard` e
   `render::layout::Breakpoint`; não duplique regras nem geometria.
@@ -261,6 +262,9 @@ claramente o que foi validado e o que permanece pendente.
 - O áudio só abre ALSA na primeira nota e nunca deve bloquear o loop; sem
   device o app continua silencioso e o HUD sinaliza `Sem áudio`.
 - Use `testes_debug.sh` no VT antes de alterar código de fbdev.
+- O pacote desktop fica em `dist/` (ignorado pelo Git) e deve ser regenerado
+  após qualquer mudança de código ou docs; o hash muda e não deve entrar nas
+  notas de release.
 - A validação manual em terminais reais e VT continua pendente; não declare
   release validado sem rodar a matriz de `docs/05`.
 - Não faça commit/push sem pedido explícito do usuário.

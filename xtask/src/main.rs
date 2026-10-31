@@ -6,6 +6,9 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 
+const DEPENDENCIES_START: &str = "<!-- dependencies:start -->";
+const DEPENDENCIES_END: &str = "<!-- dependencies:end -->";
+
 #[derive(Debug, Deserialize)]
 struct Manifest {
     schema: u32,
@@ -36,12 +39,20 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             run_assets(check)
         }
+        Some("notices") => {
+            let check = args.iter().any(|arg| arg == "--check");
+            if args.len() > 1 && !check {
+                return usage();
+            }
+            run_notices(check)
+        }
         _ => usage(),
     }
 }
 
 fn usage() -> Result<(), Box<dyn Error>> {
     eprintln!("uso: cargo xtask assets [--check]");
+    eprintln!("     cargo xtask notices [--check]");
     std::process::exit(2);
 }
 
@@ -76,6 +87,113 @@ fn run_assets(check: bool) -> Result<(), Box<dyn Error>> {
         );
     }
     Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+struct Lockfile {
+    package: Vec<LockPackage>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LockPackage {
+    name: String,
+    version: String,
+    source: Option<String>,
+}
+
+fn run_notices(check: bool) -> Result<(), Box<dyn Error>> {
+    let root = workspace_root();
+    let lock_path = root.join("Cargo.lock");
+    let text = std::fs::read_to_string(&lock_path)
+        .map_err(|error| format!("{}: {error}", lock_path.display()))?;
+    let lock: Lockfile = toml::from_str(&text)?;
+
+    let mut expected: Vec<(String, String)> = lock
+        .package
+        .into_iter()
+        .filter(|package| package.source.is_some())
+        .map(|package| (package.name, package.version))
+        .collect();
+    expected.sort();
+    expected.dedup();
+
+    let notices_path = root.join("THIRD_PARTY_NOTICES.md");
+    let notices = std::fs::read_to_string(&notices_path)
+        .map_err(|error| format!("{}: {error}", notices_path.display()))?;
+    let actual = parse_notice_rows(&notices)?;
+    let missed: Vec<_> = expected
+        .iter()
+        .filter(|entry| !actual.contains(entry))
+        .collect();
+    let stale: Vec<_> = actual
+        .iter()
+        .filter(|entry| !expected.contains(entry))
+        .collect();
+
+    if !missed.is_empty() || !stale.is_empty() {
+        for (name, version) in &missed {
+            eprintln!("ausente em THIRD_PARTY_NOTICES.md: {name} {version}");
+        }
+        for (name, version) in &stale {
+            eprintln!("sobrando em THIRD_PARTY_NOTICES.md: {name} {version}");
+        }
+        return Err("THIRD_PARTY_NOTICES.md divergente do Cargo.lock".into());
+    }
+
+    if !check {
+        println!(
+            "notices: {} dependência(s) de Cargo.lock conferidas",
+            expected.len()
+        );
+    } else {
+        println!(
+            "xtask notices --check: {} dependência(s) em dia",
+            expected.len()
+        );
+    }
+    Ok(())
+}
+
+fn parse_notice_rows(notices: &str) -> Result<Vec<(String, String)>, Box<dyn Error>> {
+    let mut inside = false;
+    let mut rows = Vec::new();
+    for line in notices.lines() {
+        let trimmed = line.trim();
+        if trimmed == DEPENDENCIES_START {
+            inside = true;
+            continue;
+        }
+        if trimmed == DEPENDENCIES_END {
+            inside = false;
+            continue;
+        }
+        if !inside {
+            continue;
+        }
+        let cells: Vec<&str> = trimmed
+            .trim_matches('|')
+            .split('|')
+            .map(str::trim)
+            .collect();
+        if cells.len() < 3 {
+            continue;
+        }
+        let (Some(name), Some(version)) = (
+            cells[0]
+                .strip_prefix('`')
+                .and_then(|cell| cell.strip_suffix('`')),
+            cells[1]
+                .strip_prefix('`')
+                .and_then(|cell| cell.strip_suffix('`')),
+        ) else {
+            continue;
+        };
+        rows.push((name.to_string(), version.to_string()));
+    }
+    if rows.is_empty() {
+        return Err("THIRD_PARTY_NOTICES.md sem bloco de dependências".into());
+    }
+    Ok(rows)
 }
 
 fn verify_asset(root: &Path, asset: &Asset) -> Result<(), Box<dyn Error>> {
